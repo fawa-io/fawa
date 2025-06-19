@@ -47,6 +47,8 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// FileServiceSayHelloProcedure is the fully-qualified name of the FileService's SayHello RPC.
+	FileServiceSayHelloProcedure = "/file.v1.FileService/SayHello"
 	// FileServiceSendFileProcedure is the fully-qualified name of the FileService's SendFile RPC.
 	FileServiceSendFileProcedure = "/file.v1.FileService/SendFile"
 	// FileServiceReceiveFileProcedure is the fully-qualified name of the FileService's ReceiveFile RPC.
@@ -55,6 +57,7 @@ const (
 
 // FileServiceClient is a client for the file.v1.FileService service.
 type FileServiceClient interface {
+	SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error)
 	SendFile(context.Context) *connect.ClientStreamForClient[v1.SendFileRequest, v1.SendFileResponse]
 	ReceiveFile(context.Context, *connect.Request[v1.ReceiveFileRequest]) (*connect.ServerStreamForClient[v1.ReceiveFileResponse], error)
 }
@@ -70,6 +73,12 @@ func NewFileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 	baseURL = strings.TrimRight(baseURL, "/")
 	fileServiceMethods := v1.File_file_v1_file_proto.Services().ByName("FileService").Methods()
 	return &fileServiceClient{
+		sayHello: connect.NewClient[v1.SayHelloRequest, v1.SayHelloResponse](
+			httpClient,
+			baseURL+FileServiceSayHelloProcedure,
+			connect.WithSchema(fileServiceMethods.ByName("SayHello")),
+			connect.WithClientOptions(opts...),
+		),
 		sendFile: connect.NewClient[v1.SendFileRequest, v1.SendFileResponse](
 			httpClient,
 			baseURL+FileServiceSendFileProcedure,
@@ -87,8 +96,14 @@ func NewFileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // fileServiceClient implements FileServiceClient.
 type fileServiceClient struct {
+	sayHello    *connect.Client[v1.SayHelloRequest, v1.SayHelloResponse]
 	sendFile    *connect.Client[v1.SendFileRequest, v1.SendFileResponse]
 	receiveFile *connect.Client[v1.ReceiveFileRequest, v1.ReceiveFileResponse]
+}
+
+// SayHello calls file.v1.FileService.SayHello.
+func (c *fileServiceClient) SayHello(ctx context.Context, req *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error) {
+	return c.sayHello.CallUnary(ctx, req)
 }
 
 // SendFile calls file.v1.FileService.SendFile.
@@ -103,6 +118,7 @@ func (c *fileServiceClient) ReceiveFile(ctx context.Context, req *connect.Reques
 
 // FileServiceHandler is an implementation of the file.v1.FileService service.
 type FileServiceHandler interface {
+	SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error)
 	SendFile(context.Context, *connect.ClientStream[v1.SendFileRequest]) (*connect.Response[v1.SendFileResponse], error)
 	ReceiveFile(context.Context, *connect.Request[v1.ReceiveFileRequest], *connect.ServerStream[v1.ReceiveFileResponse]) error
 }
@@ -114,6 +130,12 @@ type FileServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewFileServiceHandler(svc FileServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	fileServiceMethods := v1.File_file_v1_file_proto.Services().ByName("FileService").Methods()
+	fileServiceSayHelloHandler := connect.NewUnaryHandler(
+		FileServiceSayHelloProcedure,
+		svc.SayHello,
+		connect.WithSchema(fileServiceMethods.ByName("SayHello")),
+		connect.WithHandlerOptions(opts...),
+	)
 	fileServiceSendFileHandler := connect.NewClientStreamHandler(
 		FileServiceSendFileProcedure,
 		svc.SendFile,
@@ -128,6 +150,8 @@ func NewFileServiceHandler(svc FileServiceHandler, opts ...connect.HandlerOption
 	)
 	return "/file.v1.FileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case FileServiceSayHelloProcedure:
+			fileServiceSayHelloHandler.ServeHTTP(w, r)
 		case FileServiceSendFileProcedure:
 			fileServiceSendFileHandler.ServeHTTP(w, r)
 		case FileServiceReceiveFileProcedure:
@@ -140,6 +164,10 @@ func NewFileServiceHandler(svc FileServiceHandler, opts ...connect.HandlerOption
 
 // UnimplementedFileServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedFileServiceHandler struct{}
+
+func (UnimplementedFileServiceHandler) SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("file.v1.FileService.SayHello is not implemented"))
+}
 
 func (UnimplementedFileServiceHandler) SendFile(context.Context, *connect.ClientStream[v1.SendFileRequest]) (*connect.Response[v1.SendFileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("file.v1.FileService.SendFile is not implemented"))
