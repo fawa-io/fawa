@@ -22,7 +22,7 @@ run:
 
 # run unit tests
 test:
-    @echo "Running units tests..."
+    @echo "Running unit tests..."
     go test -v -cover ./...
 
 # go mod tidy
@@ -38,7 +38,7 @@ fmt:
 # run golangci-lint
 lint:
     @echo "Linting code..."
-    # check if golangcil-lint command exist.
+    # check if golangci-lint command exists.
     @if ! command -v golangci-lint &> /dev/null; then \
         echo "golangci-lint not found. Please install it first: https://golangci-lint.run/usage/install/"; \
         exit 1; \
