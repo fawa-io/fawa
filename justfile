@@ -40,8 +40,7 @@ lint:
     @echo "Linting code..."
     # check if golangci-lint command exists.
     @if ! command -v golangci-lint &> /dev/null; then \
-        echo "golangci-lint not found. Please install it first: https://golangci-lint.run/usage/install/"; \
-        exit 1; \
+        go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6; \
     fi
     golangci-lint run ./...
 
