@@ -41,8 +41,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Golangci-lint
-        uses: golangci/golangci-lint-action@v8.0.0
+        uses: golangci/golangci-lint-action@v8
         with:
+          version: v2.1.6
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Dependencies
