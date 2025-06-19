@@ -24,6 +24,7 @@ jobs:
           version: 1.24.x
         - name: previous
           version: 1.23.x
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -36,12 +37,7 @@ jobs:
           go-version: ${{ matrix.go-version.version }}
 
       - name: Install Dependencies
-        run: |
-        go install github.com/bufbuild/buf/cmd/buf@latest
-        go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
-        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-        go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
-        go mod tidy
+        run: go mod tidy
 
       - name: Unit Test
         run: go test ./...
