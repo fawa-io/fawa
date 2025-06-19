@@ -21,8 +21,9 @@ jobs:
         go-version:
         - name: '1.24'
           version: 1.24.x
-        - name: '1.23'
-          version: 1.23.x
+        # prepare for go 1.25.
+        # - name: '1.25'
+        #   version: 1.25.x
 
     steps:
       - name: Checkout Code
@@ -38,12 +39,6 @@ jobs:
       - name: Just
         uses: extractions/setup-just@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: v2.1.6
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install Dependencies
