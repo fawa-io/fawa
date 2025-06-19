@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '15 22 * * *'
+  workflow_dispatch: {} # support manual runs
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ci (go:${{ matrix.go-version.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+        - name: latest
+          version: 1.24.x
+        - name: previous
+          version: 1.23.x
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version.version }}
+
+      - name: Install Dependencies
+        run: |
+        go install github.com/bufbuild/buf/cmd/buf@latest
+        go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+        go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+        go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+        go mod tidy
+
+      - name: Unit Test
+        run: go test ./...
