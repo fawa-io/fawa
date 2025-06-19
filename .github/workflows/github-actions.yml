@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {} # support manual runs
+
+jobs:
+  ci:
+    name: ${{ matrix.os }} - Go ${{ matrix.go-version.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          # TODO: support windows
+          # - windows-latest
+        go-version:
+        - name: '1.24'
+          version: 1.24.x
+        - name: '1.23'
+          version: 1.23.x
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version.version }}
+
+      - name: Just
+        uses: extractions/setup-just@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1.6
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Dependencies
+        run: just tidy
+
+      - name: lint
+        run: just lint
+
+      - name: Unit Test
+        run: just test
