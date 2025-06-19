@@ -19,13 +19,15 @@ package file.v1;
 option go_package = "github.com/fawa-io/fawa/gen/file/v1;filev1";
 
 service FileService {
-  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
-  }
-
   rpc SendFile(stream SendFileRequest) returns (SendFileResponse) {
   }
 
   rpc ReceiveFile(ReceiveFileRequest) returns (stream ReceiveFileResponse) {
+  }
+}
+
+service HelloService {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
   }
 }
 
@@ -59,3 +61,4 @@ message ReceiveFileResponse {
     bytes chunk_data = 2;
   }
 }
+
