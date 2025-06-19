@@ -1,28 +1,27 @@
-name: ci
+name: CI
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '15 22 * * *'
   workflow_dispatch: {} # support manual runs
-
-permissions:
-  contents: read
 
 jobs:
   ci:
-    name: ci (go:${{ matrix.go-version.name }})
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} - Go ${{ matrix.go-version.name }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          # TODO: support windows
+          # - windows-latest
         go-version:
-        - name: latest
+        - name: '1.24'
           version: 1.24.x
-        - name: previous
+        - name: '1.23'
           version: 1.23.x
 
     steps:
@@ -36,8 +35,22 @@ jobs:
         with:
           go-version: ${{ matrix.go-version.version }}
 
+      - name: Just
+        uses: extractions/setup-just@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1.6
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install Dependencies
-        run: go mod tidy
+        run: just tidy
+
+      - name: lint
+        run: just lint
 
       - name: Unit Test
-        run: go test ./...
+        run: just test
