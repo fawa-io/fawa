@@ -30,22 +30,22 @@ func normalOutput(t *testing.T, testLevel Level, want string, args ...any) {
 	switch testLevel {
 	case LevelTrace:
 		Trace(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelDebug:
 		Debug(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelInfo:
 		Info(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelNotice:
 		Notice(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelWarn:
 		Warn(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelError:
 		Error(args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelFatal:
 		t.Fatal("fatal method cannot be tested")
 	default:
@@ -61,22 +61,22 @@ func formatOutput(t *testing.T, testLevel Level, want, format string, args ...an
 	switch testLevel {
 	case LevelTrace:
 		Tracef(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelDebug:
 		Debugf(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelInfo:
 		Infof(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelNotice:
 		Noticef(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelWarn:
 		Warnf(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelError:
 		Errorf(format, args...)
-		assert.Equal(t, buf.String(), want)
+		assert.Equal(t, want, buf.String())
 	case LevelFatal:
 		t.Fatal("fatal method cannot be tested")
 	default:
