@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package greet.v1;
 
-option go_package = "github.com/fawa-io/fawa/gen/greet/v1;greetv1";
+option go_package = "github.com/fawa-io/fawa/gen/fawa/greet/v1;greetv1";
 
 service GreetService {
   rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
