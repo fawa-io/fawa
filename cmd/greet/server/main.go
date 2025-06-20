@@ -16,8 +16,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -43,14 +48,80 @@ func (s *GreetServer) SayHello(
 	return res, nil
 }
 
+// GreetStream implements the server-streaming RPC.
+func (s *GreetServer) GreetStream(
+	ctx context.Context,
+	req *connect.Request[greetv1.GreetStreamRequest],
+	stream *connect.ServerStream[greetv1.GreetStreamResponse],
+) error {
+	name := req.Msg.Name
+	if name == "" {
+		name = "World"
+	}
+	for i := 0; i < 10; i++ {
+		if err := stream.Send(&greetv1.GreetStreamResponse{
+			Part: fmt.Sprintf("Hello, %s! (part %d)", name, i+1),
+		}); err != nil {
+			return err
+		}
+		time.Sleep(1 * time.Second)
+	}
+	return nil
+}
+
+// GreetClientStream implements the client-streaming RPC.
+func (s *GreetServer) GreetClientStream(
+	ctx context.Context,
+	stream *connect.ClientStream[greetv1.GreetClientStreamRequest],
+) (*connect.Response[greetv1.GreetClientStreamResponse], error) {
+	var names []string
+	for stream.Receive() {
+		names = append(names, stream.Msg().Name)
+	}
+	if err := stream.Err(); err != nil {
+		return nil, connect.NewError(connect.CodeUnknown, err)
+	}
+	resp := connect.NewResponse(&greetv1.GreetClientStreamResponse{
+		Summary: fmt.Sprintf("Hello, %s!", strings.Join(names, ", ")),
+	})
+	return resp, nil
+}
+
+// GreetBidiStream implements the bidirectional-streaming RPC.
+func (s *GreetServer) GreetBidiStream(
+	ctx context.Context,
+	stream *connect.BidiStream[greetv1.GreetBidiStreamRequest, greetv1.GreetBidiStreamResponse],
+) error {
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		req, err := stream.Receive()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return nil
+			}
+			return err
+		}
+		if err := stream.Send(&greetv1.GreetBidiStreamResponse{
+			Echo: fmt.Sprintf("Hello, %s!", req.Name),
+		}); err != nil {
+			return err
+		}
+	}
+}
+
 func main() {
 	srv := &GreetServer{}
 	mux := http.NewServeMux()
-	procedure, hdr := greetv1connect.NewGreetServiceHandler(srv)
-	mux.Handle(procedure, hdr)
+	path, handler := greetv1connect.NewGreetServiceHandler(srv)
+	mux.Handle(path, handler)
 	fwlog.Info("Starting greet server on :8081")
-	fwlog.Fatal(http.ListenAndServe(
-		"localhost:8081", // Use a different port for the demo server
+	// Use h2c so we can serve HTTP/2 without TLS.
+	if err := http.ListenAndServe(
+		"localhost:8081",
 		h2c.NewHandler(mux, &http2.Server{}),
-	))
+	); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

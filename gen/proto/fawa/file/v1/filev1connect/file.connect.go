@@ -53,6 +53,13 @@ const (
 	FileServiceReceiveFileProcedure = "/proto.fawa.file.v1.FileService/ReceiveFile"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	fileServiceServiceDescriptor           = v1.File_proto_fawa_file_v1_file_proto.Services().ByName("FileService")
+	fileServiceSendFileMethodDescriptor    = fileServiceServiceDescriptor.Methods().ByName("SendFile")
+	fileServiceReceiveFileMethodDescriptor = fileServiceServiceDescriptor.Methods().ByName("ReceiveFile")
+)
+
 // FileServiceClient is a client for the proto.fawa.file.v1.FileService service.
 type FileServiceClient interface {
 	SendFile(context.Context) *connect.ClientStreamForClient[v1.SendFileRequest, v1.SendFileResponse]
@@ -68,18 +75,17 @@ type FileServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewFileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) FileServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	fileServiceMethods := v1.File_proto_fawa_file_v1_file_proto.Services().ByName("FileService").Methods()
 	return &fileServiceClient{
 		sendFile: connect.NewClient[v1.SendFileRequest, v1.SendFileResponse](
 			httpClient,
 			baseURL+FileServiceSendFileProcedure,
-			connect.WithSchema(fileServiceMethods.ByName("SendFile")),
+			connect.WithSchema(fileServiceSendFileMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		receiveFile: connect.NewClient[v1.ReceiveFileRequest, v1.ReceiveFileResponse](
 			httpClient,
 			baseURL+FileServiceReceiveFileProcedure,
-			connect.WithSchema(fileServiceMethods.ByName("ReceiveFile")),
+			connect.WithSchema(fileServiceReceiveFileMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -113,17 +119,16 @@ type FileServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewFileServiceHandler(svc FileServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	fileServiceMethods := v1.File_proto_fawa_file_v1_file_proto.Services().ByName("FileService").Methods()
 	fileServiceSendFileHandler := connect.NewClientStreamHandler(
 		FileServiceSendFileProcedure,
 		svc.SendFile,
-		connect.WithSchema(fileServiceMethods.ByName("SendFile")),
+		connect.WithSchema(fileServiceSendFileMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	fileServiceReceiveFileHandler := connect.NewServerStreamHandler(
 		FileServiceReceiveFileProcedure,
 		svc.ReceiveFile,
-		connect.WithSchema(fileServiceMethods.ByName("ReceiveFile")),
+		connect.WithSchema(fileServiceReceiveFileMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/proto.fawa.file.v1.FileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
