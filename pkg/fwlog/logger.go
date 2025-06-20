@@ -17,6 +17,8 @@ package fwlog
 import (
 	"fmt"
 	"io"
+
+	"github.com/fatih/color"
 )
 
 // Logger is a logger interface that output logs.
@@ -67,9 +69,19 @@ var strs = []string{
 	"[Fatal]  ",
 }
 
+var colorRenderers = []func(format string, a ...any) string{
+	LevelTrace:  color.New(color.FgHiCyan).SprintfFunc(),
+	LevelDebug:  color.New(color.FgMagenta).SprintfFunc(),
+	LevelInfo:   color.New(color.FgBlue).SprintfFunc(),
+	LevelNotice: color.New(color.FgCyan).SprintfFunc(),
+	LevelWarn:   color.New(color.FgYellow).SprintfFunc(),
+	LevelError:  color.New(color.FgRed).SprintfFunc(),
+	LevelFatal:  color.New(color.FgHiRed, color.Bold).SprintfFunc(),
+}
+
 func (lv Level) toString() string {
 	if lv >= LevelTrace && lv <= LevelFatal {
-		return strs[lv]
+		return colorRenderers[lv](strs[lv])
 	}
 	return fmt.Sprintf("[?%d] ", lv)
 }

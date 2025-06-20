@@ -98,12 +98,48 @@ func TestOutput(t *testing.T) {
 		loggerLevel Level
 		want        string
 	}{
-		{"%s", []any{"LevelNotice test"}, LevelNotice, LevelInfo, strs[LevelNotice] + "LevelNotice test\n"},
-		{"%s %s", []any{"LevelInfo", "test"}, LevelInfo, LevelWarn, ""},
-		{"%s%s", []any{"LevelDebug", "Test"}, LevelDebug, LevelDebug, strs[LevelDebug] + "LevelDebugTest\n"},
-		{"%s", []any{"LevelTrace test"}, LevelTrace, LevelTrace, strs[LevelTrace] + "LevelTrace test\n"},
-		{"%s", []any{"LevelError test"}, LevelError, LevelInfo, strs[LevelError] + "LevelError test\n"},
-		{"%s", []any{"LevelWarn test"}, LevelWarn, LevelWarn, strs[LevelWarn] + "LevelWarn test\n"},
+		{
+			"%s",
+			[]any{"LevelNotice test"},
+			LevelNotice,
+			LevelInfo,
+			colorRenderers[LevelNotice](strs[LevelNotice]) + "LevelNotice test\n",
+		},
+		{
+			"%s %s",
+			[]any{"LevelInfo", "test"},
+			LevelInfo,
+			LevelWarn,
+			"",
+		},
+		{
+			"%s%s",
+			[]any{"LevelDebug", "Test"},
+			LevelDebug,
+			LevelDebug,
+			colorRenderers[LevelDebug](strs[LevelDebug]) + "LevelDebugTest\n",
+		},
+		{
+			"%s",
+			[]any{"LevelTrace test"},
+			LevelTrace,
+			LevelTrace,
+			colorRenderers[LevelTrace](strs[LevelTrace]) + "LevelTrace test\n",
+		},
+		{
+			"%s",
+			[]any{"LevelError test"},
+			LevelError,
+			LevelInfo,
+			colorRenderers[LevelError](strs[LevelError]) + "LevelError test\n",
+		},
+		{
+			"%s",
+			[]any{"LevelWarn test"},
+			LevelWarn,
+			LevelWarn,
+			colorRenderers[LevelWarn](strs[LevelWarn]) + "LevelWarn test\n",
+		},
 	}
 
 	for _, tt := range tests {
