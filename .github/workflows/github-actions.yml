@@ -8,6 +8,18 @@ on:
   workflow_dispatch: {} # support manual runs
 
 jobs:
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check License Header
+        uses: apache/skywalking-eyes@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   ci:
     name: ${{ matrix.os }} - Go ${{ matrix.go-version.name }}
     runs-on: ${{ matrix.os }}
