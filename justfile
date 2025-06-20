@@ -2,23 +2,23 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
 set positional-arguments := false
 
-binary-name := "fawa"
+fawa-server-bin := "fawa-server"
 
-main-package := "./cmd/server/"
+fawa-server-dir := "./cmd/server/"
 
 # just command list
 default:
     @just --list
 
-# build fawa
+# build fawa server
 build:
-    @echo "Building fawa..."
-    go build -v -o {{binary-name}} {{main-package}}
+    @echo "Building fawa server..."
+    go build -v -o {{fawa-server-bin}} {{fawa-server-dir}}
 
-# run fawa
+# run fawa server
 run:
-    @echo "Running the application..."
-    go run {{main-package}}
+    @echo "Running fawa server..."
+    go run {{fawa-server-dir}}
 
 # run unit tests
 test:
@@ -49,9 +49,9 @@ proto:generate:
     @echo "Generating protobuf files..."
     buf generate
 
-# clean fawa
+# clean fawa server
 clean:
     @echo "Cleaning up..."
-    @if [ -f {{binary-name}} ]; then \
-        rm {{binary-name}}; \
+    @if [ -f {{fawa-server-bin}} ]; then \
+        rm {{fawa-server-bin}}; \
     fi
