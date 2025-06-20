@@ -1,0 +1,6 @@
+version: v2
+modules:
+  - path: proto
+    name: buf.build/fawa-io/fawa
+deps:
+  - buf.build/googleapis/googleapis 
