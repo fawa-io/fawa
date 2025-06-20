@@ -45,7 +45,7 @@ lint:
     golangci-lint run ./...
 
 # generate protobuf files
-proto:generate:
+generate:
     @echo "Generating protobuf files..."
     buf generate
 
