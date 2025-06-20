@@ -16,13 +16,13 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"connectrpc.com/connect"
 
 	greetv1 "github.com/fawa-io/fawa/gen/greet/v1"
 	"github.com/fawa-io/fawa/gen/greet/v1/greetv1connect"
+	"github.com/fawa-io/fawa/pkg/fwlog"
 )
 
 func main() {
@@ -35,8 +35,8 @@ func main() {
 		connect.NewRequest(&greetv1.SayHelloRequest{Name: "World"}),
 	)
 	if err != nil {
-		log.Println(err)
+		fwlog.Error(err)
 		return
 	}
-	log.Println(res.Msg.Resp)
+	fwlog.Info(res.Msg.Resp)
 }
