@@ -14,38 +14,19 @@
 
 syntax = "proto3";
 
-package file.v1;
+package hello.v1;
 
-option go_package = "github.com/fawa-io/fawa/gen/file/v1;filev1";
+option go_package = "github.com/fawa-io/fawa/gen/hello/v1;hellov1";
 
-service FileService {
-  rpc SendFile(stream SendFileRequest) returns (SendFileResponse) {
-  }
-
-  rpc ReceiveFile(ReceiveFileRequest) returns (stream ReceiveFileResponse) {
+service HelloService {
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
   }
 }
 
-message SendFileRequest {
-  oneof payload {
-    string file_name = 1;
-    bytes chunk_data = 2;
-  }
+message SayHelloRequest {
+  string name = 1;
 }
 
-message SendFileResponse {
-  bool success = 1;
-  string message = 2;
+message SayHelloResponse {
+  string resp = 1;
 }
-
-message ReceiveFileRequest {
-  string file_name = 1;
-}
-
-message ReceiveFileResponse {
-  oneof payload {
-    int64 file_size = 1;
-    bytes chunk_data = 2;
-  }
-}
-
