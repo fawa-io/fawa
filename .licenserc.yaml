@@ -38,6 +38,7 @@ header:
     - '.git/'
     - '.github/**'
     - 'go.mod'
+    - 'fontend/'
     - 'go.sum'
     - 'justfile'
     - 'LICENSE'

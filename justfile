@@ -57,3 +57,8 @@ clean:
         rm {{fawa-server-bin}}; \
     fi
     rm -rf gen/
+
+# check license header
+check:
+    @echo "Checking license header..."
+    license-eye -c .licenserc.yaml header check
