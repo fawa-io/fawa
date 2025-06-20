@@ -14,9 +14,9 @@
 
 syntax = "proto3";
 
-package file.v1;
+package proto.fawa.file.v1;
 
-option go_package = "github.com/fawa-io/fawa/gen/file/v1;filev1";
+option go_package = "github.com/fawa-io/fawa/gen/proto/fawa/file/v1;filev1";
 
 service FileService {
   rpc SendFile(stream SendFileRequest) returns (SendFileResponse) {

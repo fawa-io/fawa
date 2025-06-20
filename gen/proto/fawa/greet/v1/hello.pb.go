@@ -16,7 +16,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: greet/v1/hello.proto
+// source: proto/fawa/greet/v1/hello.proto
 
 package greetv1
 
@@ -44,7 +44,7 @@ type SayHelloRequest struct {
 
 func (x *SayHelloRequest) Reset() {
 	*x = SayHelloRequest{}
-	mi := &file_greet_v1_hello_proto_msgTypes[0]
+	mi := &file_proto_fawa_greet_v1_hello_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -56,7 +56,7 @@ func (x *SayHelloRequest) String() string {
 func (*SayHelloRequest) ProtoMessage() {}
 
 func (x *SayHelloRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_greet_v1_hello_proto_msgTypes[0]
+	mi := &file_proto_fawa_greet_v1_hello_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -69,7 +69,7 @@ func (x *SayHelloRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SayHelloRequest.ProtoReflect.Descriptor instead.
 func (*SayHelloRequest) Descriptor() ([]byte, []int) {
-	return file_greet_v1_hello_proto_rawDescGZIP(), []int{0}
+	return file_proto_fawa_greet_v1_hello_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SayHelloRequest) GetName() string {
@@ -88,7 +88,7 @@ type SayHelloResponse struct {
 
 func (x *SayHelloResponse) Reset() {
 	*x = SayHelloResponse{}
-	mi := &file_greet_v1_hello_proto_msgTypes[1]
+	mi := &file_proto_fawa_greet_v1_hello_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +100,7 @@ func (x *SayHelloResponse) String() string {
 func (*SayHelloResponse) ProtoMessage() {}
 
 func (x *SayHelloResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_greet_v1_hello_proto_msgTypes[1]
+	mi := &file_proto_fawa_greet_v1_hello_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +113,7 @@ func (x *SayHelloResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SayHelloResponse.ProtoReflect.Descriptor instead.
 func (*SayHelloResponse) Descriptor() ([]byte, []int) {
-	return file_greet_v1_hello_proto_rawDescGZIP(), []int{1}
+	return file_proto_fawa_greet_v1_hello_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SayHelloResponse) GetResp() string {
@@ -123,38 +123,38 @@ func (x *SayHelloResponse) GetResp() string {
 	return ""
 }
 
-var File_greet_v1_hello_proto protoreflect.FileDescriptor
+var File_proto_fawa_greet_v1_hello_proto protoreflect.FileDescriptor
 
-const file_greet_v1_hello_proto_rawDesc = "" +
+const file_proto_fawa_greet_v1_hello_proto_rawDesc = "" +
 	"\n" +
-	"\x14greet/v1/hello.proto\x12\bgreet.v1\"%\n" +
+	"\x1fproto/fawa/greet/v1/hello.proto\x12\x13proto.fawa.greet.v1\"%\n" +
 	"\x0fSayHelloRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"&\n" +
 	"\x10SayHelloResponse\x12\x12\n" +
-	"\x04resp\x18\x01 \x01(\tR\x04resp2S\n" +
-	"\fGreetService\x12C\n" +
-	"\bSayHello\x12\x19.greet.v1.SayHelloRequest\x1a\x1a.greet.v1.SayHelloResponse\"\x00B.Z,github.com/fawa-io/fawa/gen/greet/v1;greetv1b\x06proto3"
+	"\x04resp\x18\x01 \x01(\tR\x04resp2i\n" +
+	"\fGreetService\x12Y\n" +
+	"\bSayHello\x12$.proto.fawa.greet.v1.SayHelloRequest\x1a%.proto.fawa.greet.v1.SayHelloResponse\"\x00B9Z7github.com/fawa-io/fawa/gen/proto/fawa/greet/v1;greetv1b\x06proto3"
 
 var (
-	file_greet_v1_hello_proto_rawDescOnce sync.Once
-	file_greet_v1_hello_proto_rawDescData []byte
+	file_proto_fawa_greet_v1_hello_proto_rawDescOnce sync.Once
+	file_proto_fawa_greet_v1_hello_proto_rawDescData []byte
 )
 
-func file_greet_v1_hello_proto_rawDescGZIP() []byte {
-	file_greet_v1_hello_proto_rawDescOnce.Do(func() {
-		file_greet_v1_hello_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_greet_v1_hello_proto_rawDesc), len(file_greet_v1_hello_proto_rawDesc)))
+func file_proto_fawa_greet_v1_hello_proto_rawDescGZIP() []byte {
+	file_proto_fawa_greet_v1_hello_proto_rawDescOnce.Do(func() {
+		file_proto_fawa_greet_v1_hello_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_fawa_greet_v1_hello_proto_rawDesc), len(file_proto_fawa_greet_v1_hello_proto_rawDesc)))
 	})
-	return file_greet_v1_hello_proto_rawDescData
+	return file_proto_fawa_greet_v1_hello_proto_rawDescData
 }
 
-var file_greet_v1_hello_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_greet_v1_hello_proto_goTypes = []any{
-	(*SayHelloRequest)(nil),  // 0: greet.v1.SayHelloRequest
-	(*SayHelloResponse)(nil), // 1: greet.v1.SayHelloResponse
+var file_proto_fawa_greet_v1_hello_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_fawa_greet_v1_hello_proto_goTypes = []any{
+	(*SayHelloRequest)(nil),  // 0: proto.fawa.greet.v1.SayHelloRequest
+	(*SayHelloResponse)(nil), // 1: proto.fawa.greet.v1.SayHelloResponse
 }
-var file_greet_v1_hello_proto_depIdxs = []int32{
-	0, // 0: greet.v1.GreetService.SayHello:input_type -> greet.v1.SayHelloRequest
-	1, // 1: greet.v1.GreetService.SayHello:output_type -> greet.v1.SayHelloResponse
+var file_proto_fawa_greet_v1_hello_proto_depIdxs = []int32{
+	0, // 0: proto.fawa.greet.v1.GreetService.SayHello:input_type -> proto.fawa.greet.v1.SayHelloRequest
+	1, // 1: proto.fawa.greet.v1.GreetService.SayHello:output_type -> proto.fawa.greet.v1.SayHelloResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -162,26 +162,26 @@ var file_greet_v1_hello_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_greet_v1_hello_proto_init() }
-func file_greet_v1_hello_proto_init() {
-	if File_greet_v1_hello_proto != nil {
+func init() { file_proto_fawa_greet_v1_hello_proto_init() }
+func file_proto_fawa_greet_v1_hello_proto_init() {
+	if File_proto_fawa_greet_v1_hello_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_greet_v1_hello_proto_rawDesc), len(file_greet_v1_hello_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_fawa_greet_v1_hello_proto_rawDesc), len(file_proto_fawa_greet_v1_hello_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_greet_v1_hello_proto_goTypes,
-		DependencyIndexes: file_greet_v1_hello_proto_depIdxs,
-		MessageInfos:      file_greet_v1_hello_proto_msgTypes,
+		GoTypes:           file_proto_fawa_greet_v1_hello_proto_goTypes,
+		DependencyIndexes: file_proto_fawa_greet_v1_hello_proto_depIdxs,
+		MessageInfos:      file_proto_fawa_greet_v1_hello_proto_msgTypes,
 	}.Build()
-	File_greet_v1_hello_proto = out.File
-	file_greet_v1_hello_proto_goTypes = nil
-	file_greet_v1_hello_proto_depIdxs = nil
+	File_proto_fawa_greet_v1_hello_proto = out.File
+	file_proto_fawa_greet_v1_hello_proto_goTypes = nil
+	file_proto_fawa_greet_v1_hello_proto_depIdxs = nil
 }
