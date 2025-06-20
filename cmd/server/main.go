@@ -34,22 +34,28 @@ import (
 )
 
 const (
+	// uploadDir is the directory where uploaded files are stored.
 	uploadDir = "./uploads"
 )
 
+// fileServiceHandler implements the gRPC file service.
 type fileServiceHandler struct{}
 
-// SendFile
+// SendFile handles the client-streaming RPC to upload a file.
+// The first message from the client must contain the file name,
+// and subsequent messages contain the file's data chunks.
 func (s *fileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
 ) (*connect.Response[filev1.SendFileResponse], error) {
 	log.Println("SendFile request started")
 
+	// Ensure the upload directory exists.
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	// The first message is expected to contain metadata (file name).
 	if !stream.Receive() {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file name"))
 	}
@@ -59,31 +65,36 @@ func (s *fileServiceHandler) SendFile(
 	}
 	log.Printf("Receiving file: %s", fileName)
 
-	//create
+	// Security check to prevent path traversal attacks.
+	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid file name"))
+	}
+
+	// Create the file on the server.
 	filePath := filepath.Join(uploadDir, fileName)
 	file, err := os.Create(filePath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid file name"))
-	}
-
+	// processErr is a closure to handle file processing and ensure file.Close() is called.
 	processErr := func() error {
+		// Defer closing the file. If an error occurs during processing,
+		// this will capture the close error if one occurs.
 		defer func() {
 			if closeErr := file.Close(); err == nil {
 				err = closeErr
 			}
 		}()
 
+		// Receive file data chunks in a loop.
 		for stream.Receive() {
 			chunk := stream.Msg().GetChunkData()
 			if _, err := file.Write(chunk); err != nil {
-				return err
+				return err // Return write error.
 			}
 		}
-		return stream.Err()
+		return stream.Err() // Return any error from the stream itself.
 	}()
 
 	if processErr != nil {
@@ -98,7 +109,8 @@ func (s *fileServiceHandler) SendFile(
 	return res, nil
 }
 
-// ReceiveFile
+// ReceiveFile handles the server-streaming RPC to download a file.
+// The client requests a file by name, and the server streams it back in chunks.
 func (s *fileServiceHandler) ReceiveFile(
 	ctx context.Context,
 	req *connect.Request[filev1.ReceiveFileRequest],
@@ -108,20 +120,24 @@ func (s *fileServiceHandler) ReceiveFile(
 	log.Printf("Request to download file: %s", fileName)
 	filePath := filepath.Join(uploadDir, fileName)
 
+	// Open the requested file.
 	file, err := os.Open(filePath)
 	if err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("file not found"))
 	}
+	// Ensure the file is closed upon function exit.
 	defer func() {
 		if closeErr := file.Close(); err == nil {
 			err = closeErr
 		}
 	}()
 
+	// Get file info to send the size first.
 	fileInfo, err := file.Stat()
 	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	}
+	// Send file size as the first message in the stream.
 	if err := stream.Send(&filev1.ReceiveFileResponse{
 		Payload: &filev1.ReceiveFileResponse_FileSize{
 			FileSize: fileInfo.Size(),
@@ -130,16 +146,18 @@ func (s *fileServiceHandler) ReceiveFile(
 		return err
 	}
 
+	// Stream the file content in chunks.
 	buffer := make([]byte, 1024*64) // 64KB buffer
 	for {
 		n, err := file.Read(buffer)
 		if err == io.EOF {
-			break
+			break // End of file reached.
 		}
 		if err != nil {
 			return connect.NewError(connect.CodeInternal, err)
 		}
 
+		// Send a data chunk.
 		if err := stream.Send(&filev1.ReceiveFileResponse{
 			Payload: &filev1.ReceiveFileResponse_ChunkData{
 				ChunkData: buffer[:n],
@@ -154,21 +172,25 @@ func (s *fileServiceHandler) ReceiveFile(
 }
 
 func main() {
-	// make sure dir exist
+	// Ensure upload directory exists on startup.
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		log.Fatalf("failed to create upload directory: %v", err)
 	}
 
 	mux := http.NewServeMux()
-	path, handler := filev1connect.NewFileServiceHandler(&fileServiceHandler{})
-	mux.Handle(path, handler)
+	// Create a new handler for the FileService.
+	procedure, handler := filev1connect.NewFileServiceHandler(&fileServiceHandler{})
+	// Register the handler with the mux.
+	mux.Handle(procedure, handler)
 
 	log.Println("Server starting on :8080...")
-	server := &http.Server{
-		Addr:    "localhost:8080",
-		Handler: h2c.NewHandler(mux, &http2.Server{}), // no tls now
+	fawaSrv := &http.Server{
+		Addr: "localhost:8080",
+		// Use h2c to handle gRPC requests over plain HTTP/2 (without TLS).
+		Handler: h2c.NewHandler(mux, &http2.Server{}),
 	}
-	err := server.ListenAndServe()
+	// Start the HTTP server.
+	err := fawaSrv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
