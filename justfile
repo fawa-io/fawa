@@ -44,6 +44,11 @@ lint:
     fi
     golangci-lint run ./...
 
+# generate protobuf files
+proto:generate:
+    @echo "Generating protobuf files..."
+    buf generate
+
 # clean fawa
 clean:
     @echo "Cleaning up..."
