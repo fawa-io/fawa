@@ -14,11 +14,11 @@
 
 syntax = "proto3";
 
-package hello.v1;
+package greet.v1;
 
-option go_package = "github.com/fawa-io/fawa/gen/hello/v1;hellov1";
+option go_package = "github.com/fawa-io/fawa/gen/greet/v1;greetv1";
 
-service HelloService {
+service GreetService {
   rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
   }
 }
