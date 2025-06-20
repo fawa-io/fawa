@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
@@ -63,6 +64,10 @@ func (s *fileServiceHandler) SendFile(
 	file, err := os.Create(filePath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid file name"))
 	}
 
 	processErr := func() error {
