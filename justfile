@@ -50,3 +50,8 @@ clean:
     @if [ -f {{fawa-server-bin}} ]; then \
         rm {{fawa-server-bin}}; \
     fi
+
+# check license header
+check:
+    @echo "Checking license header..."
+    license-eye -c .licenserc.yaml header check
