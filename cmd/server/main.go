@@ -1,3 +1,3 @@
 package main
 
-type FileServer struct{}
+type FawaServer struct{}
