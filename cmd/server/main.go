@@ -42,7 +42,7 @@ type fileServiceHandler struct{}
 func (s *fileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
-) (*connect.Response[filev1.SendFileResponse], err error) {
+) (*connect.Response[filev1.SendFileResponse], error) {
 	log.Println("SendFile request started")
 
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
@@ -65,22 +65,24 @@ func (s *fileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	defer func() {
-		if closeErr := file.Close(); err == nil && closeErr != nil {
-			err = connect.NewError(connect.CodeInternal, closeErr)
+	processErr := func() error {
+		defer func() {
+			if closeErr := file.Close(); err == nil {
+				err = closeErr
+			}
+		}()
+
+		for stream.Receive() {
+			chunk := stream.Msg().GetChunkData()
+			if _, err := file.Write(chunk); err != nil {
+				return err
+			}
 		}
+		return stream.Err()
 	}()
 
-	// get file chunk
-	for stream.Receive() {
-		chunk := stream.Msg().GetChunkData()
-		if _, err := file.Write(chunk); err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
-		}
-	}
-
-	if err := stream.Err(); err != nil {
-		return nil, connect.NewError(connect.CodeUnknown, err)
+	if processErr != nil {
+		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
 	log.Printf("File %s uploaded successfully.", fileName)
