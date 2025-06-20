@@ -66,7 +66,7 @@ func (s *fileServiceHandler) SendFile(
 	}
 	defer file.Close()
 
-	// get file chunk by for
+	// get file chunk
 	for stream.Receive() {
 		chunk := stream.Msg().GetChunkData()
 		if _, err := file.Write(chunk); err != nil {
