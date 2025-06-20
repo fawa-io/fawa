@@ -42,7 +42,7 @@ type fileServiceHandler struct{}
 func (s *fileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
-) (*connect.Response[filev1.SendFileResponse], error) {
+) (*connect.Response[filev1.SendFileResponse], err error) {
 	log.Println("SendFile request started")
 
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
@@ -64,7 +64,12 @@ func (s *fileServiceHandler) SendFile(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	defer file.Close()
+
+	defer func() {
+		if closeErr := file.Close(); err == nil && closeErr != nil {
+			err = connect.NewError(connect.CodeInternal, closeErr)
+		}
+	}()
 
 	// get file chunk
 	for stream.Receive() {
@@ -91,7 +96,7 @@ func (s *fileServiceHandler) ReceiveFile(
 	ctx context.Context,
 	req *connect.Request[filev1.ReceiveFileRequest],
 	stream *connect.ServerStream[filev1.ReceiveFileResponse],
-) error {
+) (err error) {
 	fileName := req.Msg.FileName
 	log.Printf("Request to download file: %s", fileName)
 	filePath := filepath.Join(uploadDir, fileName)
@@ -100,7 +105,11 @@ func (s *fileServiceHandler) ReceiveFile(
 	if err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("file not found"))
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
