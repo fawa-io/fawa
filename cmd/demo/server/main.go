@@ -34,8 +34,8 @@ func main() {
 	path, handler := hellov1connect.NewHelloServiceHandler(server)
 	mux.Handle(path, handler)
 	log.Println("Starting hello demo server on :8081")
-	http.ListenAndServe(
+	log.Fatal(http.ListenAndServe(
 		"localhost:8081", // Use a different port for the demo server
 		h2c.NewHandler(mux, &http2.Server{}),
-	)
+	))
 }
