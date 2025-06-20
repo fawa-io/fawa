@@ -47,6 +47,7 @@ lint:
 # generate protobuf files
 generate:
     @echo "Generating protobuf files..."
+    rm -rf gen/
     buf generate
 
 # clean fawa server
@@ -55,3 +56,4 @@ clean:
     @if [ -f {{fawa-server-bin}} ]; then \
         rm {{fawa-server-bin}}; \
     fi
+    rm -rf gen/
