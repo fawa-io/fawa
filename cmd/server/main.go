@@ -29,8 +29,8 @@ import (
 
 	"connectrpc.com/connect"
 
-	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
-	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
+	filev1 "github.com/fawa-io/fawa/gen/proto/fawa/file/v1"
+	"github.com/fawa-io/fawa/gen/proto/fawa/file/v1/filev1connect"
 )
 
 const (
