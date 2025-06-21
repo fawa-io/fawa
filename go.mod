@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/fatih/color v1.18.0
+	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.41.0
 	google.golang.org/protobuf v1.36.6
