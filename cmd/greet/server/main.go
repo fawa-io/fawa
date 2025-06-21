@@ -19,7 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+
 	"net/http"
 	"strings"
 	"time"
@@ -118,10 +118,8 @@ func main() {
 	mux.Handle(path, handler)
 	fwlog.Info("Starting greet server on :8081")
 	// Use h2c so we can serve HTTP/2 without TLS.
-	if err := http.ListenAndServe(
-		"localhost:8081",
-		h2c.NewHandler(mux, &http2.Server{}),
-	); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+
+	if err := http.ListenAndServe("localhost:8081", h2c.NewHandler(newCORS().Handler(mux), &http2.Server{})); err != nil {
+		fwlog.Error(err)
 	}
 }
