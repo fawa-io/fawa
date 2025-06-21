@@ -49,11 +49,36 @@ const (
 const (
 	// GreetServiceSayHelloProcedure is the fully-qualified name of the GreetService's SayHello RPC.
 	GreetServiceSayHelloProcedure = "/proto.fawa.greet.v1.GreetService/SayHello"
+	// GreetServiceGreetStreamProcedure is the fully-qualified name of the GreetService's GreetStream
+	// RPC.
+	GreetServiceGreetStreamProcedure = "/proto.fawa.greet.v1.GreetService/GreetStream"
+	// GreetServiceGreetClientStreamProcedure is the fully-qualified name of the GreetService's
+	// GreetClientStream RPC.
+	GreetServiceGreetClientStreamProcedure = "/proto.fawa.greet.v1.GreetService/GreetClientStream"
+	// GreetServiceGreetBidiStreamProcedure is the fully-qualified name of the GreetService's
+	// GreetBidiStream RPC.
+	GreetServiceGreetBidiStreamProcedure = "/proto.fawa.greet.v1.GreetService/GreetBidiStream"
+)
+
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	greetServiceServiceDescriptor                 = v1.File_proto_fawa_greet_v1_hello_proto.Services().ByName("GreetService")
+	greetServiceSayHelloMethodDescriptor          = greetServiceServiceDescriptor.Methods().ByName("SayHello")
+	greetServiceGreetStreamMethodDescriptor       = greetServiceServiceDescriptor.Methods().ByName("GreetStream")
+	greetServiceGreetClientStreamMethodDescriptor = greetServiceServiceDescriptor.Methods().ByName("GreetClientStream")
+	greetServiceGreetBidiStreamMethodDescriptor   = greetServiceServiceDescriptor.Methods().ByName("GreetBidiStream")
 )
 
 // GreetServiceClient is a client for the proto.fawa.greet.v1.GreetService service.
 type GreetServiceClient interface {
+	// SayHello is a unary RPC.
 	SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error)
+	// GreetStream is a server-streaming RPC.
+	GreetStream(context.Context, *connect.Request[v1.GreetStreamRequest]) (*connect.ServerStreamForClient[v1.GreetStreamResponse], error)
+	// GreetClientStream is a client-streaming RPC.
+	GreetClientStream(context.Context) *connect.ClientStreamForClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse]
+	// GreetBidiStream is a bidirectional-streaming RPC.
+	GreetBidiStream(context.Context) *connect.BidiStreamForClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]
 }
 
 // NewGreetServiceClient constructs a client for the proto.fawa.greet.v1.GreetService service. By
@@ -65,12 +90,29 @@ type GreetServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewGreetServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) GreetServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	greetServiceMethods := v1.File_proto_fawa_greet_v1_hello_proto.Services().ByName("GreetService").Methods()
 	return &greetServiceClient{
 		sayHello: connect.NewClient[v1.SayHelloRequest, v1.SayHelloResponse](
 			httpClient,
 			baseURL+GreetServiceSayHelloProcedure,
-			connect.WithSchema(greetServiceMethods.ByName("SayHello")),
+			connect.WithSchema(greetServiceSayHelloMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		greetStream: connect.NewClient[v1.GreetStreamRequest, v1.GreetStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetStreamProcedure,
+			connect.WithSchema(greetServiceGreetStreamMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		greetClientStream: connect.NewClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetClientStreamProcedure,
+			connect.WithSchema(greetServiceGreetClientStreamMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		greetBidiStream: connect.NewClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetBidiStreamProcedure,
+			connect.WithSchema(greetServiceGreetBidiStreamMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -78,7 +120,10 @@ func NewGreetServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // greetServiceClient implements GreetServiceClient.
 type greetServiceClient struct {
-	sayHello *connect.Client[v1.SayHelloRequest, v1.SayHelloResponse]
+	sayHello          *connect.Client[v1.SayHelloRequest, v1.SayHelloResponse]
+	greetStream       *connect.Client[v1.GreetStreamRequest, v1.GreetStreamResponse]
+	greetClientStream *connect.Client[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse]
+	greetBidiStream   *connect.Client[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]
 }
 
 // SayHello calls proto.fawa.greet.v1.GreetService.SayHello.
@@ -86,9 +131,31 @@ func (c *greetServiceClient) SayHello(ctx context.Context, req *connect.Request[
 	return c.sayHello.CallUnary(ctx, req)
 }
 
+// GreetStream calls proto.fawa.greet.v1.GreetService.GreetStream.
+func (c *greetServiceClient) GreetStream(ctx context.Context, req *connect.Request[v1.GreetStreamRequest]) (*connect.ServerStreamForClient[v1.GreetStreamResponse], error) {
+	return c.greetStream.CallServerStream(ctx, req)
+}
+
+// GreetClientStream calls proto.fawa.greet.v1.GreetService.GreetClientStream.
+func (c *greetServiceClient) GreetClientStream(ctx context.Context) *connect.ClientStreamForClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse] {
+	return c.greetClientStream.CallClientStream(ctx)
+}
+
+// GreetBidiStream calls proto.fawa.greet.v1.GreetService.GreetBidiStream.
+func (c *greetServiceClient) GreetBidiStream(ctx context.Context) *connect.BidiStreamForClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse] {
+	return c.greetBidiStream.CallBidiStream(ctx)
+}
+
 // GreetServiceHandler is an implementation of the proto.fawa.greet.v1.GreetService service.
 type GreetServiceHandler interface {
+	// SayHello is a unary RPC.
 	SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error)
+	// GreetStream is a server-streaming RPC.
+	GreetStream(context.Context, *connect.Request[v1.GreetStreamRequest], *connect.ServerStream[v1.GreetStreamResponse]) error
+	// GreetClientStream is a client-streaming RPC.
+	GreetClientStream(context.Context, *connect.ClientStream[v1.GreetClientStreamRequest]) (*connect.Response[v1.GreetClientStreamResponse], error)
+	// GreetBidiStream is a bidirectional-streaming RPC.
+	GreetBidiStream(context.Context, *connect.BidiStream[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]) error
 }
 
 // NewGreetServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -97,17 +164,40 @@ type GreetServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewGreetServiceHandler(svc GreetServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	greetServiceMethods := v1.File_proto_fawa_greet_v1_hello_proto.Services().ByName("GreetService").Methods()
 	greetServiceSayHelloHandler := connect.NewUnaryHandler(
 		GreetServiceSayHelloProcedure,
 		svc.SayHello,
-		connect.WithSchema(greetServiceMethods.ByName("SayHello")),
+		connect.WithSchema(greetServiceSayHelloMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	greetServiceGreetStreamHandler := connect.NewServerStreamHandler(
+		GreetServiceGreetStreamProcedure,
+		svc.GreetStream,
+		connect.WithSchema(greetServiceGreetStreamMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	greetServiceGreetClientStreamHandler := connect.NewClientStreamHandler(
+		GreetServiceGreetClientStreamProcedure,
+		svc.GreetClientStream,
+		connect.WithSchema(greetServiceGreetClientStreamMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	greetServiceGreetBidiStreamHandler := connect.NewBidiStreamHandler(
+		GreetServiceGreetBidiStreamProcedure,
+		svc.GreetBidiStream,
+		connect.WithSchema(greetServiceGreetBidiStreamMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/proto.fawa.greet.v1.GreetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case GreetServiceSayHelloProcedure:
 			greetServiceSayHelloHandler.ServeHTTP(w, r)
+		case GreetServiceGreetStreamProcedure:
+			greetServiceGreetStreamHandler.ServeHTTP(w, r)
+		case GreetServiceGreetClientStreamProcedure:
+			greetServiceGreetClientStreamHandler.ServeHTTP(w, r)
+		case GreetServiceGreetBidiStreamProcedure:
+			greetServiceGreetBidiStreamHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -119,4 +209,16 @@ type UnimplementedGreetServiceHandler struct{}
 
 func (UnimplementedGreetServiceHandler) SayHello(context.Context, *connect.Request[v1.SayHelloRequest]) (*connect.Response[v1.SayHelloResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.greet.v1.GreetService.SayHello is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetStream(context.Context, *connect.Request[v1.GreetStreamRequest], *connect.ServerStream[v1.GreetStreamResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.greet.v1.GreetService.GreetStream is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetClientStream(context.Context, *connect.ClientStream[v1.GreetClientStreamRequest]) (*connect.Response[v1.GreetClientStreamResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.greet.v1.GreetService.GreetClientStream is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetBidiStream(context.Context, *connect.BidiStream[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.greet.v1.GreetService.GreetBidiStream is not implemented"))
 }
