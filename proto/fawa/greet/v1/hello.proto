@@ -19,8 +19,17 @@ package proto.fawa.greet.v1;
 option go_package = "github.com/fawa-io/fawa/gen/proto/fawa/greet/v1;greetv1";
 
 service GreetService {
-  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {
-  }
+  // SayHello is a unary RPC.
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse);
+
+  // GreetStream is a server-streaming RPC.
+  rpc GreetStream(GreetStreamRequest) returns (stream GreetStreamResponse);
+
+  // GreetClientStream is a client-streaming RPC.
+  rpc GreetClientStream(stream GreetClientStreamRequest) returns (GreetClientStreamResponse);
+
+  // GreetBidiStream is a bidirectional-streaming RPC.
+  rpc GreetBidiStream(stream GreetBidiStreamRequest) returns (stream GreetBidiStreamResponse);
 }
 
 message SayHelloRequest {
@@ -29,4 +38,31 @@ message SayHelloRequest {
 
 message SayHelloResponse {
   string resp = 1;
+}
+
+message GreetStreamRequest {
+  string name = 1;
+}
+
+message GreetStreamResponse {
+  // A single part of a greeting.
+  string part = 1;
+}
+
+message GreetClientStreamRequest {
+  string name = 1;
+}
+
+message GreetClientStreamResponse {
+  // A summary of all the greetings.
+  string summary = 1;
+}
+
+message GreetBidiStreamRequest {
+  string name = 1;
+}
+
+message GreetBidiStreamResponse {
+  // An echo of the request.
+  string echo = 1;
 }
