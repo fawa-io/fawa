@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cors
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ import (
 	"github.com/rs/cors"
 )
 
-func newCORS() *cors.Cors {
+func NewCORS() *cors.Cors {
 	// To let web developers play with the demo service from browsers, we need a
 	// very permissive CORS setup.
 	return cors.New(cors.Options{
