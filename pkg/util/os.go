@@ -23,11 +23,17 @@ func readDir(dirpath string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer dir.Close()
+
 	names, err := dir.Readdirnames(-1)
 	if err != nil {
 		return nil, err
 	}
+
+	err = dir.Close()
+	if err != nil {
+		return nil, err
+	}
+
 	return names, nil
 }
 
