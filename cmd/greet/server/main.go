@@ -29,8 +29,8 @@ import (
 
 	"connectrpc.com/connect"
 
-	greetv1 "github.com/fawa-io/fawa/gen/proto/fawa/greet/v1"
-	"github.com/fawa-io/fawa/gen/proto/fawa/greet/v1/greetv1connect"
+	greetv1 "github.com/fawa-io/fawa/gen/fawa/greet/v1"
+	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
 	"github.com/fawa-io/fawa/pkg/fwlog"
 )
 
