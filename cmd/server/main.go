@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -31,6 +30,8 @@ import (
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
 	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
+	"github.com/fawa-io/fawa/pkg/cors"
+	"github.com/fawa-io/fawa/pkg/fwlog"
 )
 
 const (
@@ -48,8 +49,7 @@ func (s *fileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
 ) (*connect.Response[filev1.SendFileResponse], error) {
-	log.Println("SendFile request started")
-
+	fwlog.Info("SendFile request started")
 	// Ensure the upload directory exists.
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -63,7 +63,7 @@ func (s *fileServiceHandler) SendFile(
 	if fileName == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("file name cannot be empty"))
 	}
-	log.Printf("Receiving file: %s", fileName)
+	fwlog.Infof("Receiving file: %s", fileName)
 
 	// Security check to prevent path traversal attacks.
 	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
@@ -101,7 +101,7 @@ func (s *fileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
-	log.Printf("File %s uploaded successfully.", fileName)
+	fwlog.Infof("File %s uploaded successfully.", fileName)
 	res := connect.NewResponse(&filev1.SendFileResponse{
 		Success: true,
 		Message: "File " + fileName + " uploaded successfully.",
@@ -117,7 +117,7 @@ func (s *fileServiceHandler) ReceiveFile(
 	stream *connect.ServerStream[filev1.ReceiveFileResponse],
 ) (err error) {
 	fileName := req.Msg.FileName
-	log.Printf("Request to download file: %s", fileName)
+	fwlog.Info("Request to download file: %s", fileName)
 	filePath := filepath.Join(uploadDir, fileName)
 
 	// Open the requested file.
@@ -131,7 +131,7 @@ func (s *fileServiceHandler) ReceiveFile(
 			err = closeErr
 		}
 	}()
-
+	fwlog.Info("Request to download file: %s", fileName)
 	// Get file info to send the size first.
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -167,14 +167,15 @@ func (s *fileServiceHandler) ReceiveFile(
 		}
 	}
 
-	log.Printf("File %s sent successfully.", fileName)
+	fwlog.Infof("File %s sent successfully.", fileName)
 	return nil
 }
 
 func main() {
 	// Ensure upload directory exists on startup.
+	// TODO: move to pkg
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		log.Fatalf("failed to create upload directory: %v", err)
+		fwlog.Fatalf("failed to create upload directory: %v", err)
 	}
 
 	mux := http.NewServeMux()
@@ -183,15 +184,15 @@ func main() {
 	// Register the handler with the mux.
 	mux.Handle(procedure, handler)
 
-	log.Println("Server starting on :8080...")
+	fwlog.Infof("Server starting on :8080...")
 	fawaSrv := &http.Server{
 		Addr: "localhost:8080",
 		// Use h2c to handle gRPC requests over plain HTTP/2 (without TLS).
-		Handler: h2c.NewHandler(mux, &http2.Server{}),
+		Handler: h2c.NewHandler(cors.NewCORS().Handler(mux), &http2.Server{}),
 	}
 	// Start the HTTP server.
 	err := fawaSrv.ListenAndServe()
 	if err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		fwlog.Fatalf("failed to serve: %v", err)
 	}
 }
