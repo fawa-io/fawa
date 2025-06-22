@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/fawa-io/fawa/pkg/fwlog"
 	"io"
 	"log"
 	"net/http"
@@ -49,7 +50,7 @@ func (s *fileServiceHandler) SendFile(
 	stream *connect.ClientStream[filev1.SendFileRequest],
 ) (*connect.Response[filev1.SendFileResponse], error) {
 	log.Println("SendFile request started")
-
+	fwlog.Info("Request to download file: %s")
 	// Ensure the upload directory exists.
 	if err := os.MkdirAll(uploadDir, 0755); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -117,7 +118,7 @@ func (s *fileServiceHandler) ReceiveFile(
 	stream *connect.ServerStream[filev1.ReceiveFileResponse],
 ) (err error) {
 	fileName := req.Msg.FileName
-	log.Printf("Request to download file: %s", fileName)
+	fwlog.Info("Request to download file: %s", fileName)
 	filePath := filepath.Join(uploadDir, fileName)
 
 	// Open the requested file.
@@ -131,7 +132,7 @@ func (s *fileServiceHandler) ReceiveFile(
 			err = closeErr
 		}
 	}()
-
+	fwlog.Info("Request to download file: %s", fileName)
 	// Get file info to send the size first.
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -187,8 +188,9 @@ func main() {
 	fawaSrv := &http.Server{
 		Addr: "localhost:8080",
 		// Use h2c to handle gRPC requests over plain HTTP/2 (without TLS).
-		Handler: h2c.NewHandler(mux, &http2.Server{}),
+		Handler: h2c.NewHandler(newCORS().Handler(mux), &http2.Server{}),
 	}
+	fwlog.Info("Request to download file: %s")
 	// Start the HTTP server.
 	err := fawaSrv.ListenAndServe()
 	if err != nil {
