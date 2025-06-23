@@ -12,48 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package file
 
 import (
 	"context"
 	"errors"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-
 	"connectrpc.com/connect"
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
-	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
-	"github.com/fawa-io/fawa/pkg/cors"
 	"github.com/fawa-io/fawa/pkg/fwlog"
 )
 
-const (
-	// uploadDir is the directory where uploaded files are stored.
-	uploadDir = "./uploads"
-)
-
-// fileServiceHandler implements the gRPC file service.
-type fileServiceHandler struct{}
+// FileServiceHandler implements the gRPC file service.
+type FileServiceHandler struct {
+	UploadDir string
+}
 
 // SendFile handles the client-streaming RPC to upload a file.
 // The first message from the client must contain the file name,
 // and subsequent messages contain the file's data chunks.
-func (s *fileServiceHandler) SendFile(
+func (s *FileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
 ) (*connect.Response[filev1.SendFileResponse], error) {
 	fwlog.Info("SendFile request started")
-	// Ensure the upload directory exists.
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
 
 	// The first message is expected to contain metadata (file name).
 	if !stream.Receive() {
@@ -71,7 +58,7 @@ func (s *fileServiceHandler) SendFile(
 	}
 
 	// Create the file on the server.
-	filePath := filepath.Join(uploadDir, fileName)
+	filePath := filepath.Join(s.UploadDir, fileName)
 	file, err := os.Create(filePath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -111,27 +98,26 @@ func (s *fileServiceHandler) SendFile(
 
 // ReceiveFile handles the server-streaming RPC to download a file.
 // The client requests a file by name, and the server streams it back in chunks.
-func (s *fileServiceHandler) ReceiveFile(
+func (s *FileServiceHandler) ReceiveFile(
 	ctx context.Context,
 	req *connect.Request[filev1.ReceiveFileRequest],
 	stream *connect.ServerStream[filev1.ReceiveFileResponse],
 ) (err error) {
 	fileName := req.Msg.FileName
-	fwlog.Info("Request to download file: %s", fileName)
-	filePath := filepath.Join(uploadDir, fileName)
 
-	// Open the requested file.
+	fwlog.Debugf("Request to download file: %s", fileName)
+
+	filePath := filepath.Join(s.UploadDir, fileName)
 	file, err := os.Open(filePath)
 	if err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("file not found"))
 	}
-	// Ensure the file is closed upon function exit.
 	defer func() {
 		if closeErr := file.Close(); err == nil {
 			err = closeErr
 		}
 	}()
-	fwlog.Info("Request to download file: %s", fileName)
+
 	// Get file info to send the size first.
 	fileInfo, err := file.Stat()
 	if err != nil {
@@ -169,30 +155,4 @@ func (s *fileServiceHandler) ReceiveFile(
 
 	fwlog.Infof("File %s sent successfully.", fileName)
 	return nil
-}
-
-func main() {
-	// Ensure upload directory exists on startup.
-	// TODO: move to pkg
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
-		fwlog.Fatalf("failed to create upload directory: %v", err)
-	}
-
-	mux := http.NewServeMux()
-	// Create a new handler for the FileService.
-	procedure, handler := filev1connect.NewFileServiceHandler(&fileServiceHandler{})
-	// Register the handler with the mux.
-	mux.Handle(procedure, handler)
-
-	fwlog.Infof("Server starting on :8080...")
-	fawaSrv := &http.Server{
-		Addr: "localhost:8080",
-		// Use h2c to handle gRPC requests over plain HTTP/2 (without TLS).
-		Handler: h2c.NewHandler(cors.NewCORS().Handler(mux), &http2.Server{}),
-	}
-	// Start the HTTP server.
-	err := fawaSrv.ListenAndServe()
-	if err != nil {
-		fwlog.Fatalf("failed to serve: %v", err)
-	}
 }

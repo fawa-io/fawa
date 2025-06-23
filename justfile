@@ -4,7 +4,7 @@ set positional-arguments := false
 
 fawa-server-bin := "fawa-server"
 
-fawa-server-dir := "./cmd/server/"
+fawa-server-dir := "."
 
 # just command list
 default:
