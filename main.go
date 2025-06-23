@@ -39,6 +39,9 @@ func init() {
 }
 
 func main() {
+	// dev mode
+	fwlog.SetLevel(fwlog.LevelTrace)
+
 	flag.Parse()
 
 	// Create upload dir for file service.
