@@ -35,19 +35,19 @@ var (
 
 func init() {
 	flag.StringVar(&addr, "addr", "127.0.0.1:8080", "List of HTTP service address (e.g., '127.0.0.1:8080')")
-	flag.StringVar(&uploadDir, "upload", "./uploads", "Uploads files dir")
+	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
 }
 
 func main() {
 	flag.Parse()
 
+	// Create upload dir for file service.
 	if !util.Exist(uploadDir) {
 		if err := util.CreateDir(uploadDir); err != nil {
 			fwlog.Fatal(err)
 		}
 	}
 
-	// Create a new handler for the FileService.
 	fileSvcHdr := &file.FileServiceHandler{
 		UploadDir: uploadDir,
 	}
