@@ -43,7 +43,7 @@ func main() {
 
 	if !util.Exist(uploadDir) {
 		if err := util.CreateDir(uploadDir); err != nil {
-			fwlog.Error(err)
+			fwlog.Fatal(err)
 		}
 	}
 
