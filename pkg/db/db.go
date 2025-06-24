@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package db
 
 import (
 	"github.com/redis/go-redis/v9"
 )
 
-var Redis_dragonfly = redis.NewClient(&redis.Options{
+// TODO consider use db connect pool.
+var Dragonflydb = redis.NewClient(&redis.Options{
 	Addr:     "localhost:6379",
 	Password: "",
 	DB:       0,

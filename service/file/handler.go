@@ -15,29 +15,27 @@
 package file
 
 import (
+	"connectrpc.com/connect"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/fawa-io/fawa/pkg/db"
+	"github.com/fawa-io/fawa/pkg/util"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"connectrpc.com/connect"
-
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
 	"github.com/fawa-io/fawa/pkg/fwlog"
-	"github.com/fawa-io/fawa/pkg/util"
 )
 
 // FileServiceHandler implements the gRPC file service.
 type FileServiceHandler struct {
 	UploadDir string
 }
-
-var Redis_dragonfly = util.Redis_dragonfly
 
 // SendFile handles the client-streaming RPC to upload a file.
 // The first message from the client must contain the file name,
@@ -70,30 +68,6 @@ func (s *FileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	strctx := context.Background()
-	downloadkey := util.Generaterandomstring(6)
-
-	filesize, err := util.Getfilesize(filePath)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
-	key := downloadkey
-	metadata := util.FileMetadata{
-		Filename:    fileName,
-		Size:        filesize,
-		StoragePath: filePath,
-	}
-
-	jsonMetadata, err := json.Marshal(metadata)
-	if err != nil {
-		fmt.Println("JSON Marshal Failed:", err)
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
-	expiration := 25 * time.Minute
-	Redis_dragonfly.Set(strctx, key, jsonMetadata, expiration)
-
 	// processErr is a closure to handle file processing and ensure file.Close() is called.
 	processErr := func() error {
 		// Defer closing the file. If an error occurs during processing,
@@ -116,6 +90,30 @@ func (s *FileServiceHandler) SendFile(
 	if processErr != nil {
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
+
+	strctx := context.Background()
+	downloadkey := util.Generaterandomstring(6)
+
+	filesize, err := util.Getfilesize(filePath)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	key := downloadkey
+	metadata := db.FileMetadata{
+		Filename:    fileName,
+		Size:        filesize,
+		StoragePath: filePath,
+	}
+
+	jsonMetadata, err := json.Marshal(metadata)
+	if err != nil {
+		fmt.Println("JSON Marshal Failed:", err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	expiration := 25 * time.Minute
+	db.Dragonflydb.Set(strctx, key, jsonMetadata, expiration)
 
 	fwlog.Infof("File %s uploaded successfully.", fileName)
 	res := connect.NewResponse(&filev1.SendFileResponse{
