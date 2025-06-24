@@ -94,7 +94,7 @@ func (s *FileServiceHandler) SendFile(
 	strctx := context.Background()
 	downloadkey := util.Generaterandomstring(6)
 
-	filesize, err := util.Getfilesize(filePath)
+	filesize, err := util.GetFileSize(filePath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

@@ -63,7 +63,7 @@ func CreateDir(dirpath string) error {
 	return nil
 }
 
-func Getfilesize(dirpath string) (int64, error) {
+func GetFileSize(dirpath string) (int64, error) {
 	fileInfo, err := os.Stat(dirpath)
 	if err != nil {
 		return 0, err
