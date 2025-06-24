@@ -91,15 +91,15 @@ func (s *FileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
-	strctx := context.Background()
-	downloadkey := util.Generaterandomstring(6)
+	strCtx := context.Background()
+	downloadKey := util.Generaterandomstring(6)
 
 	filesize, err := util.GetFileSize(filePath)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	key := downloadkey
+	key := downloadKey
 	metadata := db.FileMetadata{
 		Filename:    fileName,
 		Size:        filesize,
@@ -113,7 +113,7 @@ func (s *FileServiceHandler) SendFile(
 	}
 
 	expiration := 25 * time.Minute
-	db.Dragonflydb.Set(strctx, key, jsonMetadata, expiration)
+	db.Dragonflydb.Set(strCtx, key, jsonMetadata, expiration)
 
 	fwlog.Infof("File %s uploaded successfully.", fileName)
 	res := connect.NewResponse(&filev1.SendFileResponse{
