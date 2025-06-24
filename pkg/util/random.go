@@ -15,18 +15,24 @@
 package util
 
 import (
-	"math/rand"
-	"time"
+	"crypto/rand"
+	"math/big"
 )
 
 var runesofrandom = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
-
 func Generaterandomstring(n int) string {
 	b := make([]rune, n)
+	max := big.NewInt(int64(len(runesofrandom)))
+
 	for i := range b {
-		b[i] = runesofrandom[r.Intn(len(runesofrandom))]
+
+		randIndex, err := rand.Int(rand.Reader, max)
+		if err != nil {
+			panic(err)
+		}
+		b[i] = runesofrandom[randIndex.Int64()]
 	}
+
 	return string(b)
 }
