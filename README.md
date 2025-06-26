@@ -1,5 +1,14 @@
 # fawa
 
+Fawa is a high-performance file transfer service built with Go. It leverages gRPC and Connect for efficient, bidirectional streaming of files.
+
+**Core Features:**
+
+*   **File Upload:** Stream files from a client to the server.
+*   **File Download:** Stream files from the server to a client.
+*   **Built with Go:** Ensures high performance and concurrency.
+*   **gRPC & Connect:** Provides a modern, robust, and efficient communication layer.
+
 
 ## Development Commands
 
