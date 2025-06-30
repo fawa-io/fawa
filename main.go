@@ -22,10 +22,12 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
+	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
 	"github.com/fawa-io/fawa/pkg/cors"
 	"github.com/fawa-io/fawa/pkg/fwlog"
 	"github.com/fawa-io/fawa/pkg/util"
 	"github.com/fawa-io/fawa/service/file"
+	"github.com/fawa-io/fawa/service/greet"
 )
 
 var (
@@ -54,10 +56,17 @@ func main() {
 	fileSvcHdr := &file.FileServiceHandler{
 		UploadDir: uploadDir,
 	}
-	procedure, handler := filev1connect.NewFileServiceHandler(fileSvcHdr)
+	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
+
+	greetSvcHdr := &greet.GreetServiceHandler{}
+	greetProcedure, greetHandler := greetv1connect.NewGreetServiceHandler(greetSvcHdr)
 
 	mux := http.NewServeMux()
-	mux.Handle(procedure, handler)
+	mux.Handle(fileProcedure, fileHandler)
+	mux.Handle(greetProcedure, greetHandler)
+
+	certFile := "localhost+2.pem"
+	keyFile := "localhost+2-key.pem"
 
 	fawaSrv := &http.Server{
 		Addr: addr,
@@ -67,8 +76,8 @@ func main() {
 
 	fwlog.Infof("Server starting on %v", addr)
 
-	// Start the HTTP server.
-	err := fawaSrv.ListenAndServe()
+	// Start the HTTPS server.
+	err := fawaSrv.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
 		fwlog.Fatalf("failed to serve: %v", err)
 	}
