@@ -40,6 +40,7 @@ header:
     - 'go.mod'
     - 'go.sum'
     - 'justfile'
+    - '*.pem'
     - 'LICENSE'
 
   comment: on-failure
