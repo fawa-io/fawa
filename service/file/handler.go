@@ -15,14 +15,18 @@
 package file
 
 import (
+	"connectrpc.com/connect"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/fawa-io/fawa/pkg/db"
+	"github.com/fawa-io/fawa/pkg/util"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"connectrpc.com/connect"
+	"time"
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
 	"github.com/fawa-io/fawa/pkg/fwlog"
@@ -67,7 +71,6 @@ func (s *FileServiceHandler) SendFile(
 	// processErr is a closure to handle file processing and ensure file.Close() is called.
 	processErr := func() error {
 		// Defer closing the file. If an error occurs during processing,
-		// this will capture the close error if one occurs.
 		defer func() {
 			if closeErr := file.Close(); err == nil {
 				err = closeErr
@@ -87,6 +90,30 @@ func (s *FileServiceHandler) SendFile(
 	if processErr != nil {
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
+
+	strCtx := context.Background()
+	downloadKey := util.Generaterandomstring(6)
+
+	filesize, err := util.GetFileSize(filePath)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	key := downloadKey
+	metadata := db.FileMetadata{
+		Filename:    fileName,
+		Size:        filesize,
+		StoragePath: filePath,
+	}
+
+	jsonMetadata, err := json.Marshal(metadata)
+	if err != nil {
+		fmt.Println("JSON Marshal Failed:", err)
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	expiration := 25 * time.Minute
+	db.Dragonflydb.Set(strCtx, key, jsonMetadata, expiration)
 
 	fwlog.Infof("File %s uploaded successfully.", fileName)
 	res := connect.NewResponse(&filev1.SendFileResponse{
