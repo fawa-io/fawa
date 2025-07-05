@@ -40,8 +40,8 @@ var (
 func init() {
 	flag.StringVar(&addr, "addr", "127.0.0.1:8080", "List of HTTP service address (e.g., '127.0.0.1:8080')")
 	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
-	flag.StringVar(&certFile, "cert-file", "cert.pem", "cert file")
-	flag.StringVar(&keyFile, "key-file", "key.pem", "key file")
+	flag.StringVar(&certFile, "cert-file", "cert.pem", "Path to the TLS certificate file.")
+	flag.StringVar(&keyFile, "key-file", "key.pem", "Path to the TLS private key file.")
 }
 
 func main() {
