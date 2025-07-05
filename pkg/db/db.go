@@ -18,7 +18,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// TODO consider use db connect pool.
+// TODO: consider use db connect pool.
 var Dragonflydb = redis.NewClient(&redis.Options{
 	Addr:     "localhost:6379",
 	Password: "",
