@@ -25,13 +25,8 @@ import (
 var logger Logger
 
 func init() {
-	config := zap.NewProductionConfig()
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.TimeKey = "time"
-	config.Development = true
-
-	// color level output
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
 
 	atomicLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
