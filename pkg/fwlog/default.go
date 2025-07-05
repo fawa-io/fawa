@@ -137,7 +137,7 @@ func (l *zapLogger) SetOutput(w io.Writer) {
 		zapcore.AddSync(w),
 		l.level,
 	)
-	l.l = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	l.l = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2))
 	l.s = l.l.Sugar()
 }
 
