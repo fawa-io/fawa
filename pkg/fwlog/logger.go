@@ -15,26 +15,21 @@
 package fwlog
 
 import (
-	"fmt"
 	"io"
 
-	"github.com/fatih/color"
+	"go.uber.org/zap/zapcore"
 )
 
 // Logger is a logger interface that output logs.
 type Logger interface {
-	Tracef(format string, v ...any)
 	Debugf(format string, v ...any)
 	Infof(format string, v ...any)
-	Noticef(format string, v ...any)
 	Warnf(format string, v ...any)
 	Errorf(format string, v ...any)
 	Fatalf(format string, v ...any)
 
-	Trace(v ...any)
 	Debug(v ...any)
 	Info(v ...any)
-	Notice(v ...any)
 	Warn(v ...any)
 	Error(v ...any)
 	Fatal(v ...any)
@@ -50,8 +45,7 @@ type Level int
 
 // The levels of logs.
 const (
-	LevelTrace Level = iota
-	LevelDebug
+	LevelDebug Level = iota
 	LevelInfo
 	LevelNotice
 	LevelWarn
@@ -59,29 +53,19 @@ const (
 	LevelFatal
 )
 
-var strs = []string{
-	"[Trace]  ",
-	"[Debug]  ",
-	"[Info]   ",
-	"[Notice] ",
-	"[Warn]   ",
-	"[Error]  ",
-	"[Fatal]  ",
-}
-
-var colorRenderers = []func(format string, a ...any) string{
-	LevelTrace:  color.New(color.FgHiCyan).SprintfFunc(),
-	LevelDebug:  color.New(color.FgMagenta).SprintfFunc(),
-	LevelInfo:   color.New(color.FgBlue).SprintfFunc(),
-	LevelNotice: color.New(color.FgCyan).SprintfFunc(),
-	LevelWarn:   color.New(color.FgYellow).SprintfFunc(),
-	LevelError:  color.New(color.FgRed).SprintfFunc(),
-	LevelFatal:  color.New(color.FgHiRed, color.Bold).SprintfFunc(),
-}
-
-func (lv Level) toString() string {
-	if lv >= LevelTrace && lv <= LevelFatal {
-		return colorRenderers[lv](strs[lv])
+func (lv Level) toZapLevel() zapcore.Level {
+	switch lv {
+	case LevelDebug:
+		return zapcore.DebugLevel
+	case LevelInfo:
+		return zapcore.InfoLevel
+	case LevelWarn:
+		return zapcore.WarnLevel
+	case LevelError:
+		return zapcore.ErrorLevel
+	case LevelFatal:
+		return zapcore.FatalLevel
+	default:
+		return zapcore.InfoLevel
 	}
-	return fmt.Sprintf("[?%d] ", lv)
 }

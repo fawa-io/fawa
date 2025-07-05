@@ -46,7 +46,7 @@ func init() {
 
 func main() {
 	// dev mode
-	fwlog.SetLevel(fwlog.LevelTrace)
+	fwlog.SetLevel(fwlog.LevelDebug)
 
 	flag.Parse()
 

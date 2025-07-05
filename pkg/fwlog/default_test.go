@@ -17,78 +17,51 @@ package fwlog
 import (
 	"bytes"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 // test package level functions without format
-func normalOutput(t *testing.T, testLevel Level, want string, args ...any) {
-	buf := new(bytes.Buffer)
-	SetOutput(buf)
-	defer SetOutput(os.Stderr)
+func normalOutput(testLevel Level, args ...any) {
 	switch testLevel {
-	case LevelTrace:
-		Trace(args...)
-		assert.Equal(t, want, buf.String())
 	case LevelDebug:
 		Debug(args...)
-		assert.Equal(t, want, buf.String())
 	case LevelInfo:
 		Info(args...)
-		assert.Equal(t, want, buf.String())
-	case LevelNotice:
-		Notice(args...)
-		assert.Equal(t, want, buf.String())
 	case LevelWarn:
 		Warn(args...)
-		assert.Equal(t, want, buf.String())
 	case LevelError:
 		Error(args...)
-		assert.Equal(t, want, buf.String())
 	case LevelFatal:
-		t.Fatal("fatal method cannot be tested")
-	default:
-		t.Errorf("unknown level: %d", testLevel)
+		// fatal method cannot be tested
 	}
 }
 
 // test package level functions with 'format'
-func formatOutput(t *testing.T, testLevel Level, want, format string, args ...any) {
-	buf := new(bytes.Buffer)
-	SetOutput(buf)
-	defer SetOutput(os.Stderr)
+func formatOutput(testLevel Level, format string, args ...any) {
 	switch testLevel {
-	case LevelTrace:
-		Tracef(format, args...)
-		assert.Equal(t, want, buf.String())
 	case LevelDebug:
 		Debugf(format, args...)
-		assert.Equal(t, want, buf.String())
 	case LevelInfo:
 		Infof(format, args...)
-		assert.Equal(t, want, buf.String())
-	case LevelNotice:
-		Noticef(format, args...)
-		assert.Equal(t, want, buf.String())
 	case LevelWarn:
 		Warnf(format, args...)
-		assert.Equal(t, want, buf.String())
 	case LevelError:
 		Errorf(format, args...)
-		assert.Equal(t, want, buf.String())
 	case LevelFatal:
-		t.Fatal("fatal method cannot be tested")
-	default:
-		t.Errorf("unknown level: %d", testLevel)
+		// fatal method cannot be tested
 	}
 }
 
 func TestOutput(t *testing.T) {
-	l := DefaultLogger().(*defaultLogger)
-	oldFlags := l.stdlog.Flags()
-	l.stdlog.SetFlags(0)
-	defer l.stdlog.SetFlags(oldFlags)
+	// a buffer to capture log output
+	buf := new(bytes.Buffer)
+	SetOutput(buf)
+	// restore stderr after test
+	defer SetOutput(os.Stderr)
+	// restore default log level
 	defer SetLevel(LevelInfo)
 
 	tests := []struct {
@@ -96,15 +69,8 @@ func TestOutput(t *testing.T) {
 		args        []any
 		testLevel   Level
 		loggerLevel Level
-		want        string
+		wantContain string
 	}{
-		{
-			"%s",
-			[]any{"LevelNotice test"},
-			LevelNotice,
-			LevelInfo,
-			colorRenderers[LevelNotice](strs[LevelNotice]) + "LevelNotice test\n",
-		},
 		{
 			"%s %s",
 			[]any{"LevelInfo", "test"},
@@ -117,34 +83,43 @@ func TestOutput(t *testing.T) {
 			[]any{"LevelDebug", "Test"},
 			LevelDebug,
 			LevelDebug,
-			colorRenderers[LevelDebug](strs[LevelDebug]) + "LevelDebugTest\n",
-		},
-		{
-			"%s",
-			[]any{"LevelTrace test"},
-			LevelTrace,
-			LevelTrace,
-			colorRenderers[LevelTrace](strs[LevelTrace]) + "LevelTrace test\n",
+			`"msg":"LevelDebugTest"`,
 		},
 		{
 			"%s",
 			[]any{"LevelError test"},
 			LevelError,
 			LevelInfo,
-			colorRenderers[LevelError](strs[LevelError]) + "LevelError test\n",
+			`"msg":"LevelError test"`,
 		},
 		{
 			"%s",
 			[]any{"LevelWarn test"},
 			LevelWarn,
 			LevelWarn,
-			colorRenderers[LevelWarn](strs[LevelWarn]) + "LevelWarn test\n",
+			`"msg":"LevelWarn test"`,
 		},
 	}
 
 	for _, tt := range tests {
 		SetLevel(tt.loggerLevel)
-		normalOutput(t, tt.testLevel, tt.want, tt.args...)
-		formatOutput(t, tt.testLevel, tt.want, tt.format, tt.args...)
+
+		// test normal output
+		normalOutput(tt.testLevel, tt.args...)
+		if tt.wantContain != "" {
+			assert.True(t, strings.Contains(buf.String(), tt.wantContain), "[normal] want %q, got %q", tt.wantContain, buf.String())
+		} else {
+			assert.Equal(t, "", buf.String(), "[normal] want empty, got %q", buf.String())
+		}
+		buf.Reset()
+
+		// test format output
+		formatOutput(tt.testLevel, tt.format, tt.args...)
+		if tt.wantContain != "" {
+			assert.True(t, strings.Contains(buf.String(), tt.wantContain), "[format] want %q, got %q", tt.wantContain, buf.String())
+		} else {
+			assert.Equal(t, "", buf.String(), "[format] want empty, got %q", buf.String())
+		}
+		buf.Reset()
 	}
 }
