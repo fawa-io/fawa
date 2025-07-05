@@ -4,3 +4,6 @@ upload/
 
 localhost+2.pem
 localhost+2-key.pem
+
+cert.pem
+key.pem
