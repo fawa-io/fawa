@@ -28,6 +28,7 @@ func init() {
 	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.TimeKey = "time"
 	config.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05.000")
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 
 	atomicLevel := zap.NewAtomicLevelAt(zap.InfoLevel)
 
