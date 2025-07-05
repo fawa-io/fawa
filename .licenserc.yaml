@@ -42,6 +42,7 @@ header:
     - 'justfile'
     - '*.pem'
     - 'LICENSE'
+    - '.golangci.yaml'
 
   comment: on-failure
 
