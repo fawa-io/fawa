@@ -47,7 +47,6 @@ type Level int
 const (
 	LevelDebug Level = iota
 	LevelInfo
-	LevelNotice
 	LevelWarn
 	LevelError
 	LevelFatal
