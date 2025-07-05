@@ -15,21 +15,22 @@
 package file
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fawa-io/fawa/pkg/db"
-	"github.com/fawa-io/fawa/pkg/util"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"connectrpc.com/connect"
+
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
+	"github.com/fawa-io/fawa/pkg/db"
 	"github.com/fawa-io/fawa/pkg/fwlog"
+	"github.com/fawa-io/fawa/pkg/util"
 )
 
 // FileServiceHandler implements the gRPC file service.
