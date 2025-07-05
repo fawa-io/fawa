@@ -33,11 +33,15 @@ import (
 var (
 	addr      string
 	uploadDir string
+	certFile  string
+	keyFile   string
 )
 
 func init() {
 	flag.StringVar(&addr, "addr", "127.0.0.1:8080", "List of HTTP service address (e.g., '127.0.0.1:8080')")
 	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
+	flag.StringVar(&certFile, "cert-file", "cert.pem", "cert file")
+	flag.StringVar(&keyFile, "key-file", "key.pem", "key file")
 }
 
 func main() {
@@ -64,9 +68,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle(fileProcedure, fileHandler)
 	mux.Handle(greetProcedure, greetHandler)
-
-	certFile := "localhost+2.pem"
-	keyFile := "localhost+2-key.pem"
 
 	fawaSrv := &http.Server{
 		Addr: addr,
