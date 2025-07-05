@@ -55,7 +55,6 @@ func TestLogger(t *testing.T) {
 func TestFileLogger(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "test-logs")
 	assert.Nil(t, err)
-	defer os.RemoveAll(tmpDir)
 
 	logFilePath := filepath.Join(tmpDir, "test.log")
 	file, err := os.Create(logFilePath)
@@ -66,7 +65,11 @@ func TestFileLogger(t *testing.T) {
 
 	Info("this is a test log")
 
-	file.Close()
+	err = file.Close()
+	assert.Nil(t, err)
+
+	err = os.RemoveAll(tmpDir)
+	assert.Nil(t, err)
 
 	logContent, err := os.ReadFile(logFilePath)
 	assert.Nil(t, err)
