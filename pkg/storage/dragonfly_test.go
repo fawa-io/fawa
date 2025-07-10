@@ -79,7 +79,7 @@ func TestDragonflyStorage_SaveFileMeta(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.mocker()
-			err := storage.SaveFileMeta(tc.key, tc.metadata)
+			err := storage.saveFileMeta(tc.key, tc.metadata)
 			if (err != nil) != tc.wantErr {
 				t.Errorf("SaveFileMeta() error = %v, wantErr %v", err, tc.wantErr)
 			}
@@ -144,7 +144,7 @@ func TestDragonflyStorage_GetFileMeta(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.mocker()
-			got, err := storage.GetFileMeta(tc.key)
+			got, err := storage.getFileMeta(tc.key)
 			if (err != nil) != tc.wantErr {
 				t.Errorf("GetFileMeta() error = %v, wantErr %v", err, tc.wantErr)
 				return

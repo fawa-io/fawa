@@ -25,8 +25,6 @@ import (
 
 var dragon *DragonflyStorage
 
-// NewDragonflyStorage creates a new instance of DragonflyStorage.
-// It returns a Storage interface, hiding the implementation details.
 func init() {
 	dragon = &DragonflyStorage{
 		client: redis.NewClient(&redis.Options{
@@ -42,8 +40,7 @@ type DragonflyStorage struct {
 	client redis.Cmdable
 }
 
-// SaveFileMetadata implements the Storage interface.
-func SaveFileMeta(key string, metadata *FileMetadata) error {
+func (dragon *DragonflyStorage) saveFileMeta(key string, metadata *FileMetadata) error {
 	if metadata == nil {
 		return errors.New("metadata cannot be nil")
 	}
@@ -55,8 +52,7 @@ func SaveFileMeta(key string, metadata *FileMetadata) error {
 	return dragon.client.Set(context.Background(), key, jsonMetadata, ttl).Err()
 }
 
-// GetFileMetadata implements the Storage interface.
-func GetFileMeta(key string) (*FileMetadata, error) {
+func (dragon *DragonflyStorage) getFileMeta(key string) (*FileMetadata, error) {
 	val, err := dragon.client.Get(context.Background(), key).Result()
 	if err != nil {
 		return nil, err
@@ -67,4 +63,12 @@ func GetFileMeta(key string) (*FileMetadata, error) {
 		return nil, err
 	}
 	return &metadata, nil
+}
+
+func SaveFileMeta(key string, metadata *FileMetadata) error {
+	return dragon.saveFileMeta(key, metadata)
+}
+
+func GetFileMeta(key string) (*FileMetadata, error) {
+	return dragon.getFileMeta(key)
 }
