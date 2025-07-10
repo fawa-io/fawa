@@ -19,7 +19,7 @@ import (
 	"math/big"
 )
 
-var runesofrandom = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var runesofrandom = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 func Generaterandomstring(n int) string {
 	b := make([]rune, n)

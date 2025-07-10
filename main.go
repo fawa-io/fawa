@@ -25,16 +25,18 @@ import (
 	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
 	"github.com/fawa-io/fawa/pkg/cors"
 	"github.com/fawa-io/fawa/pkg/fwlog"
+	"github.com/fawa-io/fawa/pkg/storage"
 	"github.com/fawa-io/fawa/pkg/util"
 	"github.com/fawa-io/fawa/service/file"
 	"github.com/fawa-io/fawa/service/greet"
 )
 
 var (
-	addr      string
-	uploadDir string
-	certFile  string
-	keyFile   string
+	addr          string
+	uploadDir     string
+	certFile      string
+	keyFile       string
+	dragonflyAddr string
 )
 
 func init() {
@@ -42,6 +44,7 @@ func init() {
 	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
 	flag.StringVar(&certFile, "cert-file", "cert.pem", "Path to the TLS certificate file.")
 	flag.StringVar(&keyFile, "key-file", "key.pem", "Path to the TLS private key file.")
+	flag.StringVar(&dragonflyAddr, "dragonfly-addr", "localhost:6379", "Address for the Dragonfly/Redis instance.")
 }
 
 func main() {
@@ -57,14 +60,21 @@ func main() {
 		}
 	}
 
-	fileSvcHdr := &file.FileServiceHandler{
-		UploadDir: uploadDir,
+	storageSvc, err := storage.NewDragonflyStorage(dragonflyAddr)
+	if err != nil {
+		fwlog.Fatalf("failed to connect to storage: %v", err)
 	}
+	fwlog.Info("Successfully connected to storage.")
+
+	//Inject the dependency into the file service handler
+	fileSvcHdr := file.NewHandler(uploadDir, storageSvc)
 	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
 
+	// Greet service (no dependencies yet)
 	greetSvcHdr := &greet.GreetServiceHandler{}
 	greetProcedure, greetHandler := greetv1connect.NewGreetServiceHandler(greetSvcHdr)
 
+	// Register all handlers
 	mux := http.NewServeMux()
 	mux.Handle(fileProcedure, fileHandler)
 	mux.Handle(greetProcedure, greetHandler)
@@ -78,8 +88,7 @@ func main() {
 	fwlog.Infof("Server starting on %v", addr)
 
 	// Start the HTTPS server.
-	err := fawaSrv.ListenAndServeTLS(certFile, keyFile)
-	if err != nil {
+	if err := fawaSrv.ListenAndServeTLS(certFile, keyFile); err != nil {
 		fwlog.Fatalf("failed to serve: %v", err)
 	}
 }
