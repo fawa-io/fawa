@@ -36,16 +36,18 @@ message SendFileRequest {
 message SendFileResponse {
   bool success = 1;
   string message = 2;
+  string randomkey =3;
 }
 
 message ReceiveFileRequest {
-  string file_name = 1;
+  string randomkey = 1;
 }
 
 message ReceiveFileResponse {
+  string filename =1;
   oneof payload {
-    int64 file_size = 1;
-    bytes chunk_data = 2;
+    int64 file_size = 2;
+    bytes chunk_data = 3;
   }
 }
 
