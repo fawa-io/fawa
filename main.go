@@ -31,11 +31,10 @@ import (
 )
 
 var (
-	addr          string
-	uploadDir     string
-	certFile      string
-	keyFile       string
-	dragonflyAddr string
+	addr      string
+	uploadDir string
+	certFile  string
+	keyFile   string
 )
 
 func init() {
