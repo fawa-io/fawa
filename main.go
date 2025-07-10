@@ -62,9 +62,11 @@ func main() {
 	}
 	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
 
+	// Greet service (no dependencies yet)
 	greetSvcHdr := &greet.GreetServiceHandler{}
 	greetProcedure, greetHandler := greetv1connect.NewGreetServiceHandler(greetSvcHdr)
 
+	// Register all handlers
 	mux := http.NewServeMux()
 	mux.Handle(fileProcedure, fileHandler)
 	mux.Handle(greetProcedure, greetHandler)
@@ -78,8 +80,7 @@ func main() {
 	fwlog.Infof("Server starting on %v", addr)
 
 	// Start the HTTPS server.
-	err := fawaSrv.ListenAndServeTLS(certFile, keyFile)
-	if err != nil {
+	if err := fawaSrv.ListenAndServeTLS(certFile, keyFile); err != nil {
 		fwlog.Fatalf("failed to serve: %v", err)
 	}
 }

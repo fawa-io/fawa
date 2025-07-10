@@ -16,24 +16,22 @@ package file
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
-	"github.com/fawa-io/fawa/pkg/db"
 	"github.com/fawa-io/fawa/pkg/fwlog"
+	"github.com/fawa-io/fawa/pkg/storage"
 	"github.com/fawa-io/fawa/pkg/util"
 )
 
 // FileServiceHandler implements the gRPC file service.
+// It depends on a Storage interface for data persistence.
 type FileServiceHandler struct {
 	UploadDir string
 }
@@ -92,7 +90,6 @@ func (s *FileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
-	strCtx := context.Background()
 	downloadKey := util.Generaterandomstring(6)
 
 	filesize, err := util.GetFileSize(filePath)
@@ -100,26 +97,21 @@ func (s *FileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	key := downloadKey
-	metadata := db.FileMetadata{
+	metadata := &storage.FileMetadata{
 		Filename:    fileName,
 		Size:        filesize,
 		StoragePath: filePath,
 	}
 
-	jsonMetadata, err := json.Marshal(metadata)
-	if err != nil {
-		fmt.Println("JSON Marshal Failed:", err)
+	if err := storage.SaveFileMeta(downloadKey, metadata); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	expiration := 25 * time.Minute
-	db.Dragonflydb.Set(strCtx, key, jsonMetadata, expiration)
-
 	fwlog.Infof("File %s uploaded successfully.", fileName)
 	res := connect.NewResponse(&filev1.SendFileResponse{
-		Success: true,
-		Message: "File " + fileName + " uploaded successfully.",
+		Success:   true,
+		Message:   "File " + fileName + " uploaded successfully.",
+		Randomkey: downloadKey,
 	})
 	return res, nil
 }
@@ -131,8 +123,17 @@ func (s *FileServiceHandler) ReceiveFile(
 	req *connect.Request[filev1.ReceiveFileRequest],
 	stream *connect.ServerStream[filev1.ReceiveFileResponse],
 ) (err error) {
-	fileName := req.Msg.FileName
+	randomkey := req.Msg.Randomkey
+	if randomkey == "" {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("randomkey cannot be empty"))
+	}
 
+	metadata, err := storage.GetFileMeta(randomkey)
+	if err != nil {
+		return connect.NewError(connect.CodeNotFound, errors.New("file not found"))
+	}
+
+	fileName := metadata.Filename
 	fwlog.Debugf("Request to download file: %s", fileName)
 
 	filePath := filepath.Join(s.UploadDir, fileName)
@@ -173,6 +174,7 @@ func (s *FileServiceHandler) ReceiveFile(
 
 		// Send a data chunk.
 		if err := stream.Send(&filev1.ReceiveFileResponse{
+			Filename: fileName,
 			Payload: &filev1.ReceiveFileResponse_ChunkData{
 				ChunkData: buffer[:n],
 			},

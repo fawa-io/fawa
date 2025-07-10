@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package db
+package storage
 
-import (
-	"github.com/redis/go-redis/v9"
-)
-
-// TODO: consider use db connect pool.
-var Dragonflydb = redis.NewClient(&redis.Options{
-	Addr:     "localhost:6379",
-	Password: "",
-	DB:       0,
-})
-
+// FileMetadata defines the structure for storing file information.
+// This is the canonical definition used across the application.
 type FileMetadata struct {
 	Filename    string `json:"filename"`
 	Size        int64  `json:"size"`
 	StoragePath string `json:"storagePath"`
+}
+
+// Storage defines the interface for all data storage operations.
+// This allows for decoupling the business logic from the concrete storage implementation.
+type Storage interface {
+	// SaveFileMeta saves the file metadata with a given key and TTL.
+	SaveFileMeta(key string, metadata *FileMetadata) error
+
+	// GetFileMeta retrieves file metadata by its key.
+	GetFileMeta(key string) (*FileMetadata, error)
 }
