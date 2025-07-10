@@ -23,28 +23,27 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+var dragon *DragonflyStorage
+
+// NewDragonflyStorage creates a new instance of DragonflyStorage.
+// It returns a Storage interface, hiding the implementation details.
+func init() {
+	dragon = &DragonflyStorage{
+		client: redis.NewClient(&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "", // no password set
+			DB:       0,  // use default DB
+		}),
+	}
+}
+
 // DragonflyStorage implements the Storage interface using Dragonfly/Redis.
 type DragonflyStorage struct {
 	client redis.Cmdable
 }
 
-// NewDragonflyStorage creates a new instance of DragonflyStorage.
-// It returns a Storage interface, hiding the implementation details.
-func NewDragonflyStorage(addr string) (Storage, error) {
-	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	// Check the connection.
-	if err := client.Ping(context.Background()).Err(); err != nil {
-		return nil, err
-	}
-	return &DragonflyStorage{client: client}, nil
-}
-
 // SaveFileMetadata implements the Storage interface.
-func (d *DragonflyStorage) SaveFileMeta(key string, metadata *FileMetadata) error {
+func SaveFileMeta(key string, metadata *FileMetadata) error {
 	if metadata == nil {
 		return errors.New("metadata cannot be nil")
 	}
@@ -53,12 +52,12 @@ func (d *DragonflyStorage) SaveFileMeta(key string, metadata *FileMetadata) erro
 		return err
 	}
 	ttl := 25 * time.Minute
-	return d.client.Set(context.Background(), key, jsonMetadata, ttl).Err()
+	return dragon.client.Set(context.Background(), key, jsonMetadata, ttl).Err()
 }
 
 // GetFileMetadata implements the Storage interface.
-func (d *DragonflyStorage) GetFileMeta(key string) (*FileMetadata, error) {
-	val, err := d.client.Get(context.Background(), key).Result()
+func GetFileMeta(key string) (*FileMetadata, error) {
+	val, err := dragon.client.Get(context.Background(), key).Result()
 	if err != nil {
 		return nil, err
 	}

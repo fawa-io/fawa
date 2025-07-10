@@ -34,15 +34,6 @@ import (
 // It depends on a Storage interface for data persistence.
 type FileServiceHandler struct {
 	UploadDir string
-	storage   storage.Storage
-}
-
-// NewHandler creates a new FileServiceHandler.
-func NewHandler(uploadDir string, storage storage.Storage) *FileServiceHandler {
-	return &FileServiceHandler{
-		UploadDir: uploadDir,
-		storage:   storage,
-	}
 }
 
 // SendFile handles the client-streaming RPC to upload a file.
@@ -112,7 +103,7 @@ func (s *FileServiceHandler) SendFile(
 		StoragePath: filePath,
 	}
 
-	if err := s.storage.SaveFileMeta(downloadKey, metadata); err != nil {
+	if err := storage.SaveFileMeta(downloadKey, metadata); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -137,7 +128,7 @@ func (s *FileServiceHandler) ReceiveFile(
 		return connect.NewError(connect.CodeInvalidArgument, errors.New("randomkey cannot be empty"))
 	}
 
-	metadata, err := s.storage.GetFileMeta(randomkey)
+	metadata, err := storage.GetFileMeta(randomkey)
 	if err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("file not found"))
 	}

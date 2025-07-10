@@ -25,7 +25,6 @@ import (
 	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
 	"github.com/fawa-io/fawa/pkg/cors"
 	"github.com/fawa-io/fawa/pkg/fwlog"
-	"github.com/fawa-io/fawa/pkg/storage"
 	"github.com/fawa-io/fawa/pkg/util"
 	"github.com/fawa-io/fawa/service/file"
 	"github.com/fawa-io/fawa/service/greet"
@@ -44,7 +43,6 @@ func init() {
 	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
 	flag.StringVar(&certFile, "cert-file", "cert.pem", "Path to the TLS certificate file.")
 	flag.StringVar(&keyFile, "key-file", "key.pem", "Path to the TLS private key file.")
-	flag.StringVar(&dragonflyAddr, "dragonfly-addr", "localhost:6379", "Address for the Dragonfly/Redis instance.")
 }
 
 func main() {
@@ -60,14 +58,9 @@ func main() {
 		}
 	}
 
-	storageSvc, err := storage.NewDragonflyStorage(dragonflyAddr)
-	if err != nil {
-		fwlog.Fatalf("failed to connect to storage: %v", err)
+	fileSvcHdr := &file.FileServiceHandler{
+		UploadDir: uploadDir,
 	}
-	fwlog.Info("Successfully connected to storage.")
-
-	//Inject the dependency into the file service handler
-	fileSvcHdr := file.NewHandler(uploadDir, storageSvc)
 	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
 
 	// Greet service (no dependencies yet)
