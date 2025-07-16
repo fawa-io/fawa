@@ -24,6 +24,11 @@ service FileService {
 
   rpc ReceiveFile(ReceiveFileRequest) returns (stream ReceiveFileResponse) {
   }
+
+  rpc GetDownloadURL(GetDownloadURLRequest) returns (GetDownloadURLResponse){
+
+  }
+
 }
 
 message SendFileRequest {
@@ -50,4 +55,15 @@ message ReceiveFileResponse {
     bytes chunk_data = 3;
   }
 }
+
+message GetDownloadURLRequest{
+  string randomkey = 1;
+}
+
+message GetDownloadURLResponse{
+  string url = 1;
+  string filename = 2;
+}
+
+
 

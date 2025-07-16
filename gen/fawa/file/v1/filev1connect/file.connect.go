@@ -51,19 +51,24 @@ const (
 	FileServiceSendFileProcedure = "/proto.fawa.file.v1.FileService/SendFile"
 	// FileServiceReceiveFileProcedure is the fully-qualified name of the FileService's ReceiveFile RPC.
 	FileServiceReceiveFileProcedure = "/proto.fawa.file.v1.FileService/ReceiveFile"
+	// FileServiceGetDownloadURLProcedure is the fully-qualified name of the FileService's
+	// GetDownloadURL RPC.
+	FileServiceGetDownloadURLProcedure = "/proto.fawa.file.v1.FileService/GetDownloadURL"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	fileServiceServiceDescriptor           = v1.File_fawa_file_v1_file_proto.Services().ByName("FileService")
-	fileServiceSendFileMethodDescriptor    = fileServiceServiceDescriptor.Methods().ByName("SendFile")
-	fileServiceReceiveFileMethodDescriptor = fileServiceServiceDescriptor.Methods().ByName("ReceiveFile")
+	fileServiceServiceDescriptor              = v1.File_fawa_file_v1_file_proto.Services().ByName("FileService")
+	fileServiceSendFileMethodDescriptor       = fileServiceServiceDescriptor.Methods().ByName("SendFile")
+	fileServiceReceiveFileMethodDescriptor    = fileServiceServiceDescriptor.Methods().ByName("ReceiveFile")
+	fileServiceGetDownloadURLMethodDescriptor = fileServiceServiceDescriptor.Methods().ByName("GetDownloadURL")
 )
 
 // FileServiceClient is a client for the proto.fawa.file.v1.FileService service.
 type FileServiceClient interface {
 	SendFile(context.Context) *connect.ClientStreamForClient[v1.SendFileRequest, v1.SendFileResponse]
 	ReceiveFile(context.Context, *connect.Request[v1.ReceiveFileRequest]) (*connect.ServerStreamForClient[v1.ReceiveFileResponse], error)
+	GetDownloadURL(context.Context, *connect.Request[v1.GetDownloadURLRequest]) (*connect.Response[v1.GetDownloadURLResponse], error)
 }
 
 // NewFileServiceClient constructs a client for the proto.fawa.file.v1.FileService service. By
@@ -88,13 +93,20 @@ func NewFileServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(fileServiceReceiveFileMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getDownloadURL: connect.NewClient[v1.GetDownloadURLRequest, v1.GetDownloadURLResponse](
+			httpClient,
+			baseURL+FileServiceGetDownloadURLProcedure,
+			connect.WithSchema(fileServiceGetDownloadURLMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // fileServiceClient implements FileServiceClient.
 type fileServiceClient struct {
-	sendFile    *connect.Client[v1.SendFileRequest, v1.SendFileResponse]
-	receiveFile *connect.Client[v1.ReceiveFileRequest, v1.ReceiveFileResponse]
+	sendFile       *connect.Client[v1.SendFileRequest, v1.SendFileResponse]
+	receiveFile    *connect.Client[v1.ReceiveFileRequest, v1.ReceiveFileResponse]
+	getDownloadURL *connect.Client[v1.GetDownloadURLRequest, v1.GetDownloadURLResponse]
 }
 
 // SendFile calls proto.fawa.file.v1.FileService.SendFile.
@@ -107,10 +119,16 @@ func (c *fileServiceClient) ReceiveFile(ctx context.Context, req *connect.Reques
 	return c.receiveFile.CallServerStream(ctx, req)
 }
 
+// GetDownloadURL calls proto.fawa.file.v1.FileService.GetDownloadURL.
+func (c *fileServiceClient) GetDownloadURL(ctx context.Context, req *connect.Request[v1.GetDownloadURLRequest]) (*connect.Response[v1.GetDownloadURLResponse], error) {
+	return c.getDownloadURL.CallUnary(ctx, req)
+}
+
 // FileServiceHandler is an implementation of the proto.fawa.file.v1.FileService service.
 type FileServiceHandler interface {
 	SendFile(context.Context, *connect.ClientStream[v1.SendFileRequest]) (*connect.Response[v1.SendFileResponse], error)
 	ReceiveFile(context.Context, *connect.Request[v1.ReceiveFileRequest], *connect.ServerStream[v1.ReceiveFileResponse]) error
+	GetDownloadURL(context.Context, *connect.Request[v1.GetDownloadURLRequest]) (*connect.Response[v1.GetDownloadURLResponse], error)
 }
 
 // NewFileServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -131,12 +149,20 @@ func NewFileServiceHandler(svc FileServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(fileServiceReceiveFileMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	fileServiceGetDownloadURLHandler := connect.NewUnaryHandler(
+		FileServiceGetDownloadURLProcedure,
+		svc.GetDownloadURL,
+		connect.WithSchema(fileServiceGetDownloadURLMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/proto.fawa.file.v1.FileService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FileServiceSendFileProcedure:
 			fileServiceSendFileHandler.ServeHTTP(w, r)
 		case FileServiceReceiveFileProcedure:
 			fileServiceReceiveFileHandler.ServeHTTP(w, r)
+		case FileServiceGetDownloadURLProcedure:
+			fileServiceGetDownloadURLHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -152,4 +178,8 @@ func (UnimplementedFileServiceHandler) SendFile(context.Context, *connect.Client
 
 func (UnimplementedFileServiceHandler) ReceiveFile(context.Context, *connect.Request[v1.ReceiveFileRequest], *connect.ServerStream[v1.ReceiveFileResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.file.v1.FileService.ReceiveFile is not implemented"))
+}
+
+func (UnimplementedFileServiceHandler) GetDownloadURL(context.Context, *connect.Request[v1.GetDownloadURLRequest]) (*connect.Response[v1.GetDownloadURLResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.file.v1.FileService.GetDownloadURL is not implemented"))
 }
