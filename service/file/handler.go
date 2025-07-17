@@ -15,14 +15,17 @@
 package file
 
 import (
+	"connectrpc.com/connect"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"connectrpc.com/connect"
+	"sync"
+	"time"
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
 	"github.com/fawa-io/fawa/pkg/fwlog"
@@ -47,60 +50,88 @@ func (s *FileServiceHandler) SendFile(
 
 	// The first message is expected to contain metadata (file name).
 	if !stream.Receive() {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file name"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file info message"))
 	}
-	fileName := stream.Msg().GetFileName()
-	if fileName == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("file name cannot be empty"))
+	fileInfo := stream.Msg().GetInfo()
+	fileName := stream.Msg().GetInfo().GetName()
+	fileSize := stream.Msg().GetInfo().GetSize()
+	if fileInfo == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("first message must be file info"))
 	}
-	fwlog.Infof("Receiving file: %s", fileName)
 
 	// Security check to prevent path traversal attacks.
 	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid file name"))
 	}
 
-	// Create the file on the server.
-	filePath := filepath.Join(s.UploadDir, fileName)
-	file, err := os.Create(filePath)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
+	// Use a pipe to stream the file to MinIO without saving it to disk first.
+	pr, pw := io.Pipe()
 
-	// processErr is a closure to handle file processing and ensure file.Close() is called.
-	processErr := func() error {
-		// Defer closing the file. If an error occurs during processing,
+	var wg sync.WaitGroup
+	wg.Add(1)
+	errChan := make(chan error, 1)
+
+	// Start a goroutine to upload the file to MinIO.
+	go func() {
+		defer wg.Done()
 		defer func() {
-			if closeErr := file.Close(); err == nil {
-				err = closeErr
+			if err := pr.Close(); err != nil {
+				fwlog.Errorf("Failed to close pipe reader: %v", err)
 			}
 		}()
 
-		// Receive file data chunks in a loop.
+		_, err := storage.UploadFile(ctx, fileName, pr, fileSize) // Use -1 for unknown size to stream
+
+		if err != nil {
+			errChan <- fmt.Errorf("minio upload failed: %w", err)
+			fwlog.Errorf("Failed to upload file to MinIO: %v", err)
+			return
+		}
+	}()
+
+	// Stream data from the client to the pipe writer.
+	processErr := func() (err error) {
+		defer func() {
+			if closeErr := pw.Close(); closeErr != nil {
+				if err == nil {
+					err = closeErr
+				}
+			}
+		}()
+
 		for stream.Receive() {
 			chunk := stream.Msg().GetChunkData()
-			if _, err := file.Write(chunk); err != nil {
-				return err // Return write error.
+			if _, err := pw.Write(chunk); err != nil {
+				return err
 			}
 		}
-		return stream.Err() // Return any error from the stream itself.
+		return stream.Err()
 	}()
 
 	if processErr != nil {
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
-	downloadKey := util.Generaterandomstring(6)
-
-	filesize, err := util.GetFileSize(filePath)
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+	if err := stream.Err(); err != nil {
+		if closeErr := pw.CloseWithError(fmt.Errorf("client stream error: %w", err)); closeErr != nil {
+			log.Printf("Error closing pipe writer after client stream error: %v", closeErr)
+		}
+		wg.Wait()
+		return nil, connect.NewError(connect.CodeAborted, err)
 	}
 
+	wg.Wait()
+	close(errChan)
+	if err := <-errChan; err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	downloadKey := util.Generaterandomstring(6)
+
+	// The fileSize is now determined by the upload info from MinIO.
 	metadata := &storage.FileMetadata{
 		Filename:    fileName,
-		Size:        filesize,
-		StoragePath: filePath,
+		Size:        fileSize,
+		StoragePath: fileName, // The storage path is now the object name in MinIO.
 	}
 
 	if err := storage.SaveFileMeta(downloadKey, metadata); err != nil {
@@ -185,4 +216,38 @@ func (s *FileServiceHandler) ReceiveFile(
 
 	fwlog.Infof("File %s sent successfully.", fileName)
 	return nil
+}
+
+// GetDownloadURL generates a presigned URL for a file.
+func (s *FileServiceHandler) GetDownloadURL(
+	ctx context.Context,
+	req *connect.Request[filev1.GetDownloadURLRequest],
+) (*connect.Response[filev1.GetDownloadURLResponse], error) {
+	randomkey := req.Msg.Randomkey
+	if randomkey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("randomkey cannot be empty"))
+	}
+
+	metadata, err := storage.GetFileMeta(randomkey)
+	if err != nil {
+		// If the key is not found in your metadata store (e.g., Redis)
+		fwlog.Error("Failed to get file metadata for key %s: %v", randomkey, err)
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("file not found or link expired"))
+	}
+
+	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
+
+	expires := 5 * time.Minute
+	presignedURL, err := storage.GetPresignedURL(ctx, metadata.StoragePath, expires)
+	if err != nil {
+		fwlog.Error("Failed to generate presigned URL for %s: %v", metadata.StoragePath, err)
+		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
+	}
+
+	res := connect.NewResponse(&filev1.GetDownloadURLResponse{
+		Url:      presignedURL.String(),
+		Filename: metadata.Filename,
+	})
+
+	return res, nil
 }
