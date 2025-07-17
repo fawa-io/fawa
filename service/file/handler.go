@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -237,20 +238,24 @@ func (s *FileServiceHandler) GetDownloadURL(
 
 	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
 
-	// --- DEBUGGING: List all objects in the bucket ---
-	objects, err := storage.ListObjects(ctx)
-	if err != nil {
-		fwlog.Errorf("Failed to list objects in bucket for debugging: %v", err)
-	} else {
-		fwlog.Infof("Objects currently in bucket '%s': %v", "fawa", objects)
-	}
-	// --- END DEBUGGING ---
-
 	expires := 5 * time.Minute
 	presignedURL, err := storage.GetPresignedURL(ctx, metadata.StoragePath, expires)
 	if err != nil {
 		fwlog.Error("Failed to generate presigned URL for %s: %v", metadata.StoragePath, err)
 		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
+	}
+
+	// Replace the host in the presigned URL with the public-facing endpoint.
+	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	if publicEndpoint != "" {
+		parsedPublicEndpoint, err := url.Parse(publicEndpoint)
+		if err != nil {
+			fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
+			// Fallback to the original URL if parsing fails
+		} else {
+			presignedURL.Host = parsedPublicEndpoint.Host
+			presignedURL.Scheme = parsedPublicEndpoint.Scheme
+		}
 	}
 
 	res := connect.NewResponse(&filev1.GetDownloadURLResponse{

@@ -43,12 +43,6 @@ func init() {
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	useSSL := os.Getenv("MINIO_USE_SSL") == "true"
 
-	log.Printf("Initializing MinIO with the following configuration:")
-	log.Printf("  MINIO_ENDPOINT: %s", endpoint)
-	log.Printf("  MINIO_ACCESS_KEY_ID: %s", accessKeyID)
-	log.Printf("  MINIO_BUCKET_NAME: %s", bucketName)
-	log.Printf("  MINIO_USE_SSL: %v", useSSL)
-
 	if endpoint == "" || accessKeyID == "" || secretAccessKey == "" || bucketName == "" {
 		log.Println("MinIO environment variables for file storage not set, skipping client initialization.")
 		return
@@ -104,21 +98,4 @@ func GetPresignedURL(ctx context.Context, objectName string, expires time.Durati
 	}
 
 	return fileStore.client.PresignedGetObject(ctx, fileStore.bucketName, objectName, expires, nil)
-}
-
-// ListObjects lists all objects in the bucket for debugging purposes.
-func ListObjects(ctx context.Context) ([]string, error) {
-	if fileStore == nil {
-		return nil, errors.New("MinIO client is not initialized")
-	}
-
-	var objectNames []string
-	objectCh := fileStore.client.ListObjects(ctx, fileStore.bucketName, minio.ListObjectsOptions{})
-	for object := range objectCh {
-		if object.Err != nil {
-			return nil, object.Err
-		}
-		objectNames = append(objectNames, object.Key)
-	}
-	return objectNames, nil
 }
