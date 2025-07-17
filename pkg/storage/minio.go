@@ -43,6 +43,12 @@ func init() {
 	bucketName := os.Getenv("MINIO_BUCKET_NAME")
 	useSSL := os.Getenv("MINIO_USE_SSL") == "true"
 
+	log.Printf("Initializing MinIO with the following configuration:")
+	log.Printf("  MINIO_ENDPOINT: %s", endpoint)
+	log.Printf("  MINIO_ACCESS_KEY_ID: %s", accessKeyID)
+	log.Printf("  MINIO_BUCKET_NAME: %s", bucketName)
+	log.Printf("  MINIO_USE_SSL: %v", useSSL)
+
 	if endpoint == "" || accessKeyID == "" || secretAccessKey == "" || bucketName == "" {
 		log.Println("MinIO environment variables for file storage not set, skipping client initialization.")
 		return
