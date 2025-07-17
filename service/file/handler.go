@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,38 +39,42 @@ type FileServiceHandler struct {
 }
 
 // SendFile handles the client-streaming RPC to upload a file.
-// The first message from the client must contain the file name,
-// and subsequent messages contain the file's data chunks.
 func (s *FileServiceHandler) SendFile(
 	ctx context.Context,
 	stream *connect.ClientStream[filev1.SendFileRequest],
 ) (*connect.Response[filev1.SendFileResponse], error) {
 	fwlog.Info("SendFile request started")
 
-	// The first message is expected to contain metadata (file name).
 	if !stream.Receive() {
+		if err := stream.Err(); err != nil {
+			return nil, connect.NewError(connect.CodeAborted, err)
+		}
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file info message"))
 	}
-	fileInfo := stream.Msg().GetInfo()
-	fileName := stream.Msg().GetInfo().GetName()
-	fileSize := stream.Msg().GetInfo().GetSize()
-	if fileInfo == nil {
+
+	// The first message must contain file info.
+	payload := stream.Msg().GetPayload()
+	info, ok := payload.(*filev1.SendFileRequest_Info)
+	if !ok {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("first message must be file info"))
 	}
 
-	// Security check to prevent path traversal attacks.
+	fileInfo := info.Info
+	fileName := fileInfo.GetName()
+	fileSize := fileInfo.GetSize()
+
+	if fileName == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("file name cannot be empty"))
+	}
 	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("invalid file name"))
 	}
 
-	// Use a pipe to stream the file to MinIO without saving it to disk first.
 	pr, pw := io.Pipe()
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 	errChan := make(chan error, 1)
 
-	// Start a goroutine to upload the file to MinIO.
 	go func() {
 		defer wg.Done()
 		defer func() {
@@ -79,29 +82,23 @@ func (s *FileServiceHandler) SendFile(
 				fwlog.Errorf("Failed to close pipe reader: %v", err)
 			}
 		}()
-
-		_, err := storage.UploadFile(ctx, fileName, pr, fileSize) // Use -1 for unknown size to stream
-
+		uploadInfo, err := storage.UploadFile(ctx, fileName, pr, fileSize)
 		if err != nil {
 			errChan <- fmt.Errorf("minio upload failed: %w", err)
 			fwlog.Errorf("Failed to upload file to MinIO: %v", err)
 			return
 		}
+		fwlog.Infof("File uploaded to MinIO: %+v", uploadInfo)
 	}()
 
-	// Stream data from the client to the pipe writer.
-	processErr := func() (err error) {
-		defer func() {
-			if closeErr := pw.Close(); closeErr != nil {
-				if err == nil {
-					err = closeErr
-				}
-			}
-		}()
-
+	processErr := func() error {
 		for stream.Receive() {
-			chunk := stream.Msg().GetChunkData()
-			if _, err := pw.Write(chunk); err != nil {
+			payload := stream.Msg().GetPayload()
+			chunk, ok := payload.(*filev1.SendFileRequest_ChunkData)
+			if !ok {
+				return connect.NewError(connect.CodeInvalidArgument, errors.New("subsequent messages must be chunk data"))
+			}
+			if _, err := pw.Write(chunk.ChunkData); err != nil {
 				return err
 			}
 		}
@@ -109,29 +106,30 @@ func (s *FileServiceHandler) SendFile(
 	}()
 
 	if processErr != nil {
+		if err := pw.CloseWithError(processErr); err != nil {
+			fwlog.Errorf("Failed to close pipe writer with error: %v", err)
+		}
+		wg.Wait() // Wait for the upload goroutine to finish
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
-	if err := stream.Err(); err != nil {
-		if closeErr := pw.CloseWithError(fmt.Errorf("client stream error: %w", err)); closeErr != nil {
-			log.Printf("Error closing pipe writer after client stream error: %v", closeErr)
-		}
+	if err := pw.Close(); err != nil {
 		wg.Wait()
-		return nil, connect.NewError(connect.CodeAborted, err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to close pipe writer: %w", err))
 	}
 
 	wg.Wait()
 	close(errChan)
+
 	if err := <-errChan; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	downloadKey := util.Generaterandomstring(6)
 
-	// The fileSize is now determined by the upload info from MinIO.
+	downloadKey := util.Generaterandomstring(6)
 	metadata := &storage.FileMetadata{
 		Filename:    fileName,
 		Size:        fileSize,
-		StoragePath: fileName, // The storage path is now the object name in MinIO.
+		StoragePath: fileName,
 	}
 
 	if err := storage.SaveFileMeta(downloadKey, metadata); err != nil {
