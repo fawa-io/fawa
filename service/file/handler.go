@@ -18,10 +18,13 @@ import (
 	"connectrpc.com/connect"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
@@ -47,13 +50,14 @@ func (s *FileServiceHandler) SendFile(
 
 	// The first message is expected to contain metadata (file name).
 	if !stream.Receive() {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file name"))
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("missing file info message"))
 	}
-	fileName := stream.Msg().GetFileName()
-	if fileName == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("file name cannot be empty"))
+	fileInfo := stream.Msg().GetInfo()
+	fileName := stream.Msg().GetInfo().GetName()
+	fileSize := stream.Msg().GetInfo().GetSize()
+	if fileInfo == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("first message must be file info"))
 	}
-	fwlog.Infof("Receiving file: %s", fileName)
 
 	// Security check to prevent path traversal attacks.
 	if filepath.IsAbs(fileName) || strings.Contains(fileName, "..") {
@@ -62,23 +66,27 @@ func (s *FileServiceHandler) SendFile(
 
 	// Use a pipe to stream the file to MinIO without saving it to disk first.
 	pr, pw := io.Pipe()
-	var fileSize int64
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	errChan := make(chan error, 1)
 
 	// Start a goroutine to upload the file to MinIO.
 	go func() {
+		defer wg.Done()
 		defer func() {
 			if err := pr.Close(); err != nil {
 				fwlog.Errorf("Failed to close pipe reader: %v", err)
 			}
 		}()
-		info, err := storage.UploadFile(ctx, fileName, pr, -1) // Use -1 for unknown size to stream
+
+		_, err := storage.UploadFile(ctx, fileName, pr, fileSize) // Use -1 for unknown size to stream
+
 		if err != nil {
-			// It's tricky to propagate this error back to the main flow once the response has been sent.
-			// For now, we log it. A more robust solution might involve a channel.
+			errChan <- fmt.Errorf("minio upload failed: %w", err)
 			fwlog.Errorf("Failed to upload file to MinIO: %v", err)
 			return
 		}
-		fileSize = info.Size
 	}()
 
 	// Stream data from the client to the pipe writer.
@@ -90,6 +98,7 @@ func (s *FileServiceHandler) SendFile(
 				}
 			}
 		}()
+
 		for stream.Receive() {
 			chunk := stream.Msg().GetChunkData()
 			if _, err := pw.Write(chunk); err != nil {
@@ -103,6 +112,19 @@ func (s *FileServiceHandler) SendFile(
 		return nil, connect.NewError(connect.CodeInternal, processErr)
 	}
 
+	if err := stream.Err(); err != nil {
+		if closeErr := pw.CloseWithError(fmt.Errorf("client stream error: %w", err)); closeErr != nil {
+			log.Printf("Error closing pipe writer after client stream error: %v", closeErr)
+		}
+		wg.Wait()
+		return nil, connect.NewError(connect.CodeAborted, err)
+	}
+
+	wg.Wait()
+	close(errChan)
+	if err := <-errChan; err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
 	downloadKey := util.Generaterandomstring(6)
 
 	// The fileSize is now determined by the upload info from MinIO.

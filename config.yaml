@@ -1,0 +1,5 @@
+endpoint: "localhost:9000"
+accessKeyID: "minioadmin"
+secretAccessKey: "minioadmin"
+bucketName: "fawa-bucket"
+useSSL: false
