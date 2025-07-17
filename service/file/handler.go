@@ -233,6 +233,8 @@ func (s *FileServiceHandler) GetDownloadURL(
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("file not found or link expired"))
 	}
 
+	fwlog.Infof("Retrieved metadata for key %s: StoragePath='%s', Filename='%s'", randomkey, metadata.StoragePath, metadata.Filename)
+
 	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
 
 	expires := 5 * time.Minute
