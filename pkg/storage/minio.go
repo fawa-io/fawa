@@ -25,17 +25,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	yaml "gopkg.in/yaml.v3"
 )
-
-// MinIOConfig holds the configuration for MinIO.
-type MinIOConfig struct {
-	Endpoint        string `yaml:"endpoint"`
-	AccessKeyID     string `yaml:"accessKeyID"`
-	SecretAccessKey string `yaml:"secretAccessKey"`
-	BucketName      string `yaml:"bucketName"`
-	UseSSL          bool   `yaml:"useSSL"`
-}
 
 // minioFileStore holds the client and configuration for MinIO file operations.
 type minioFileStore struct {
@@ -45,28 +35,22 @@ type minioFileStore struct {
 
 var fileStore *minioFileStore
 
-// init initializes the MinIO client and bucket from a YAML configuration file.
+// init initializes the MinIO client and bucket from environment variables.
 func init() {
-	configPath := "pkg/storage/minio.yaml" // Assuming config.yaml is in the root directory
-	configData, err := os.ReadFile(configPath)
-	if err != nil {
-		log.Printf("Failed to read config file %s: %v, skipping MinIO client initialization.", configPath, err)
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	accessKeyID := os.Getenv("MINIO_ACCESS_KEY_ID")
+	secretAccessKey := os.Getenv("MINIO_SECRET_ACCESS_KEY")
+	bucketName := os.Getenv("MINIO_BUCKET_NAME")
+	useSSL := os.Getenv("MINIO_USE_SSL") == "true"
+
+	if endpoint == "" || accessKeyID == "" || secretAccessKey == "" || bucketName == "" {
+		log.Println("MinIO environment variables for file storage not set, skipping client initialization.")
 		return
 	}
 
-	var cfg MinIOConfig
-	if err := yaml.Unmarshal(configData, &cfg); err != nil {
-		log.Fatalf("Failed to unmarshal config file %s: %v", configPath, err)
-	}
-
-	if cfg.Endpoint == "" || cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" || cfg.BucketName == "" {
-		log.Println("MinIO configuration in config.yaml is incomplete, skipping client initialization.")
-		return
-	}
-
-	client, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
-		Secure: cfg.UseSSL,
+	client, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure: useSSL,
 	})
 	if err != nil {
 		log.Fatalf("Failed to initialize MinIO client: %v", err)
@@ -74,22 +58,22 @@ func init() {
 
 	fileStore = &minioFileStore{
 		client:     client,
-		bucketName: cfg.BucketName,
+		bucketName: bucketName,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	exists, err := client.BucketExists(ctx, cfg.BucketName)
+	exists, err := client.BucketExists(ctx, bucketName)
 	if err != nil {
-		log.Fatalf("Failed to check if MinIO bucket '%s' exists: %v", cfg.BucketName, err)
+		log.Fatalf("Failed to check if MinIO bucket '%s' exists: %v", bucketName, err)
 	}
 	if !exists {
-		err = client.MakeBucket(ctx, cfg.BucketName, minio.MakeBucketOptions{})
+		err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
 		if err != nil {
-			log.Fatalf("Failed to create MinIO bucket '%s': %v", cfg.BucketName, err)
+			log.Fatalf("Failed to create MinIO bucket '%s': %v", bucketName, err)
 		}
-		log.Printf("Successfully created MinIO bucket: %s", cfg.BucketName)
+		log.Printf("Successfully created MinIO bucket: %s", bucketName)
 	}
 }
 
