@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -251,6 +252,19 @@ func (s *FileServiceHandler) GetDownloadURL(
 	if err != nil {
 		fwlog.Error("Failed to generate presigned URL for %s: %v", metadata.StoragePath, err)
 		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
+	}
+
+	// Replace the host in the presigned URL with the public-facing endpoint.
+	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	if publicEndpoint != "" {
+		parsedPublicEndpoint, err := url.Parse(publicEndpoint)
+		if err != nil {
+			fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
+			// Fallback to the original URL if parsing fails
+		} else {
+			presignedURL.Host = parsedPublicEndpoint.Host
+			presignedURL.Scheme = parsedPublicEndpoint.Scheme
+		}
 	}
 
 	res := connect.NewResponse(&filev1.GetDownloadURLResponse{
