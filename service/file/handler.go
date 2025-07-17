@@ -237,6 +237,15 @@ func (s *FileServiceHandler) GetDownloadURL(
 
 	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
 
+	// --- DEBUGGING: List all objects in the bucket ---
+	objects, err := storage.ListObjects(ctx)
+	if err != nil {
+		fwlog.Errorf("Failed to list objects in bucket for debugging: %v", err)
+	} else {
+		fwlog.Infof("Objects currently in bucket '%s': %v", "fawa", objects)
+	}
+	// --- END DEBUGGING ---
+
 	expires := 5 * time.Minute
 	presignedURL, err := storage.GetPresignedURL(ctx, metadata.StoragePath, expires)
 	if err != nil {
