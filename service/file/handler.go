@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -229,23 +228,11 @@ func (s *FileServiceHandler) GetDownloadURL(
 
 	metadata, err := storage.GetFileMeta(randomkey)
 	if err != nil {
-		// If the key is not found in your metadata store (e.g., Redis)
 		fwlog.Error("Failed to get file metadata for key %s: %v", randomkey, err)
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("file not found or link expired"))
 	}
 
-	fwlog.Infof("Retrieved metadata for key %s: StoragePath='%s', Filename='%s'", randomkey, metadata.StoragePath, metadata.Filename)
-
 	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
-
-	// --- DEBUGGING: List all objects in the bucket ---
-	objects, err := storage.ListObjects(ctx)
-	if err != nil {
-		fwlog.Errorf("Failed to list objects in bucket for debugging: %v", err)
-	} else {
-		fwlog.Infof("Objects currently in bucket '%s': %v", "fawa", objects)
-	}
-	// --- END DEBUGGING ---
 
 	expires := 5 * time.Minute
 	presignedURL, err := storage.GetPresignedURL(ctx, metadata.StoragePath, expires)
@@ -254,21 +241,16 @@ func (s *FileServiceHandler) GetDownloadURL(
 		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
 	}
 
-	// Replace the host in the presigned URL with the public-facing endpoint.
+	internalEndpoint := os.Getenv("MINIO_ENDPOINT")
 	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	if publicEndpoint != "" {
-		parsedPublicEndpoint, err := url.Parse(publicEndpoint)
-		if err != nil {
-			fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
-			// Fallback to the original URL if parsing fails
-		} else {
-			presignedURL.Host = parsedPublicEndpoint.Host
-			presignedURL.Scheme = parsedPublicEndpoint.Scheme
-		}
+
+	finalURL := presignedURL.String()
+	if internalEndpoint != "" && publicEndpoint != "" {
+		finalURL = strings.Replace(finalURL, internalEndpoint, publicEndpoint, 1)
 	}
 
 	res := connect.NewResponse(&filev1.GetDownloadURLResponse{
-		Url:      presignedURL.String(),
+		Url:      finalURL,
 		Filename: metadata.Filename,
 	})
 
