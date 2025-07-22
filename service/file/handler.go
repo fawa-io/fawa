@@ -229,23 +229,11 @@ func (s *FileServiceHandler) GetDownloadURL(
 
 	metadata, err := storage.GetFileMeta(randomkey)
 	if err != nil {
-		// If the key is not found in your metadata store (e.g., Redis)
 		fwlog.Error("Failed to get file metadata for key %s: %v", randomkey, err)
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("file not found or link expired"))
 	}
 
-	fwlog.Infof("Retrieved metadata for key %s: StoragePath='%s', Filename='%s'", randomkey, metadata.StoragePath, metadata.Filename)
-
 	fwlog.Infof("Request to generate download URL for file: %s", metadata.StoragePath)
-
-	// --- DEBUGGING: List all objects in the bucket ---
-	objects, err := storage.ListObjects(ctx)
-	if err != nil {
-		fwlog.Errorf("Failed to list objects in bucket for debugging: %v", err)
-	} else {
-		fwlog.Infof("Objects currently in bucket '%s': %v", "fawa", objects)
-	}
-	// --- END DEBUGGING ---
 
 	expires := 5 * time.Minute
 	presignedURL, err := storage.GetPresignedURL(ctx, metadata.StoragePath, expires)
@@ -254,21 +242,32 @@ func (s *FileServiceHandler) GetDownloadURL(
 		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
 	}
 
-	// Replace the host in the presigned URL with the public-facing endpoint.
-	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	if publicEndpoint != "" {
-		parsedPublicEndpoint, err := url.Parse(publicEndpoint)
-		if err != nil {
-			fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
-			// Fallback to the original URL if parsing fails
-		} else {
-			presignedURL.Host = parsedPublicEndpoint.Host
-			presignedURL.Scheme = parsedPublicEndpoint.Scheme
-		}
+	publicEndpointStr := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	if publicEndpointStr == "" {
+		return connect.NewResponse(&filev1.GetDownloadURLResponse{
+			Url:      presignedURL.String(),
+			Filename: metadata.Filename,
+		}), nil
+	}
+
+	publicEndpoint, err := url.Parse(publicEndpointStr)
+	if err != nil {
+		fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT '%s': %v", publicEndpointStr, err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid public endpoint configuration"))
+	}
+
+	finalURL := presignedURL
+	finalURL.Scheme = publicEndpoint.Scheme
+	finalURL.Host = publicEndpoint.Host
+
+	// publicEndpoint.Path = /minio, presignedURL.Path = /fawa/file.docx
+	// finalpath = /minio/fawa/file.docx
+	if publicEndpoint.Path != "" {
+		finalURL.Path = publicEndpoint.Path + finalURL.Path
 	}
 
 	res := connect.NewResponse(&filev1.GetDownloadURLResponse{
-		Url:      presignedURL.String(),
+		Url:      finalURL.String(),
 		Filename: metadata.Filename,
 	})
 
