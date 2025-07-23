@@ -60,7 +60,7 @@ var (
 
 // CanvaServiceClient is a client for the proto.fawa.canva.v1.CanvaService service.
 type CanvaServiceClient interface {
-	Collaborate(context.Context) *connect.BidiStreamForClient[v1.ClientDrawMessage, v1.PubToClientMessage]
+	Collaborate(context.Context) *connect.BidiStreamForClient[v1.ClientDrawRequest, v1.ClientDrawResponse]
 }
 
 // NewCanvaServiceClient constructs a client for the proto.fawa.canva.v1.CanvaService service. By
@@ -73,7 +73,7 @@ type CanvaServiceClient interface {
 func NewCanvaServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) CanvaServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &canvaServiceClient{
-		collaborate: connect.NewClient[v1.ClientDrawMessage, v1.PubToClientMessage](
+		collaborate: connect.NewClient[v1.ClientDrawRequest, v1.ClientDrawResponse](
 			httpClient,
 			baseURL+CanvaServiceCollaborateProcedure,
 			connect.WithSchema(canvaServiceCollaborateMethodDescriptor),
@@ -84,17 +84,17 @@ func NewCanvaServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // canvaServiceClient implements CanvaServiceClient.
 type canvaServiceClient struct {
-	collaborate *connect.Client[v1.ClientDrawMessage, v1.PubToClientMessage]
+	collaborate *connect.Client[v1.ClientDrawRequest, v1.ClientDrawResponse]
 }
 
 // Collaborate calls proto.fawa.canva.v1.CanvaService.Collaborate.
-func (c *canvaServiceClient) Collaborate(ctx context.Context) *connect.BidiStreamForClient[v1.ClientDrawMessage, v1.PubToClientMessage] {
+func (c *canvaServiceClient) Collaborate(ctx context.Context) *connect.BidiStreamForClient[v1.ClientDrawRequest, v1.ClientDrawResponse] {
 	return c.collaborate.CallBidiStream(ctx)
 }
 
 // CanvaServiceHandler is an implementation of the proto.fawa.canva.v1.CanvaService service.
 type CanvaServiceHandler interface {
-	Collaborate(context.Context, *connect.BidiStream[v1.ClientDrawMessage, v1.PubToClientMessage]) error
+	Collaborate(context.Context, *connect.BidiStream[v1.ClientDrawRequest, v1.ClientDrawResponse]) error
 }
 
 // NewCanvaServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -122,6 +122,6 @@ func NewCanvaServiceHandler(svc CanvaServiceHandler, opts ...connect.HandlerOpti
 // UnimplementedCanvaServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCanvaServiceHandler struct{}
 
-func (UnimplementedCanvaServiceHandler) Collaborate(context.Context, *connect.BidiStream[v1.ClientDrawMessage, v1.PubToClientMessage]) error {
+func (UnimplementedCanvaServiceHandler) Collaborate(context.Context, *connect.BidiStream[v1.ClientDrawRequest, v1.ClientDrawResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("proto.fawa.canva.v1.CanvaService.Collaborate is not implemented"))
 }

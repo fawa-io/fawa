@@ -20,6 +20,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/fawa-io/fawa/pkg/fwlog"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -29,8 +30,8 @@ func init() {
 	dragon = &DragonflyStorage{
 		client: redis.NewClient(&redis.Options{
 			Addr:     "localhost:6379",
-			Password: "", // no password set
-			DB:       0,  // use default DB
+			Password: "",
+			DB:       0,
 		}),
 	}
 }
@@ -71,4 +72,21 @@ func SaveFileMeta(key string, metadata *FileMetadata) error {
 
 func GetFileMeta(key string) (*FileMetadata, error) {
 	return dragon.getFileMeta(key)
+}
+
+// Close closes storage connections
+func Close() error {
+	if dragon != nil {
+		// Try to cast to redis.Client type
+		if client, ok := dragon.client.(*redis.Client); ok {
+			fwlog.Info("Closing Redis/Dragonfly connection...")
+			return client.Close()
+		}
+		// Try to cast to redis.ClusterClient type
+		if client, ok := dragon.client.(*redis.ClusterClient); ok {
+			fwlog.Info("Closing Redis/Dragonfly cluster connection...")
+			return client.Close()
+		}
+	}
+	return nil
 }
