@@ -115,22 +115,15 @@ func (h *CanvaServiceHandler) Collaborate(
 			// Ensure client ID is set
 			drawEvent.ClientId = clientID
 
-			// 处理不同类型的绘制事件
 			switch drawEvent.Type {
 			case "ping":
-				// ping事件只用于保持连接，不记录也不广播
 				fwlog.Debugf("Client %s: Received ping, keeping connection alive", clientID)
 			case "clear":
-				// clear事件需要清除历史记录并广播
 				fwlog.Infof("Client %s: Received clear canvas command", clientID)
-				// 记录清除事件
 				h.addToHistory(drawEvent)
-				// 广播清除事件给所有客户端
 				h.broadcast <- drawEvent
-				// 清除历史记录，但保留这个清除事件
 				h.clearHistory(drawEvent)
 			default:
-				// 其他绘制事件正常处理
 				h.addToHistory(drawEvent)
 				h.broadcast <- drawEvent
 			}
@@ -181,12 +174,12 @@ func (h *CanvaServiceHandler) sendInitialHistory(stream *connect.BidiStream[v1.C
 	})
 }
 
-// 清除历史记录，但保留指定的清除事件
+//Purge history, but retain the specified purge events
 func (h *CanvaServiceHandler) clearHistory(clearEvent *v1.DrawEvent) {
 	h.historyMu.Lock()
 	defer h.historyMu.Unlock()
 
-	// 清除所有历史，只保留清除事件
+	//purge All History And Keep Only PurgeEvents
 	h.history = []*v1.DrawEvent{clearEvent}
 	fwlog.Infof("Canvas history cleared by client %s", clearEvent.ClientId)
 }
