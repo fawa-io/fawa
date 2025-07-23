@@ -19,7 +19,7 @@ package proto.fawa.canva.v1;
 option go_package = "github.com/fawa-io/fawa/gen/fawa/canva/v1;canvav1";
 
 service CanvaService {
-  rpc Collaborate (stream ClientDrawMessage) returns (stream PubToClientMessage) ;
+  rpc Collaborate (stream  ClientDrawRequest) returns (stream ClientDrawResponse) ;
 }
 
 message DrawEvent {
@@ -37,13 +37,13 @@ message History {
   repeated DrawEvent events = 1;
 }
 
-message ClientDrawMessage {
+message ClientDrawRequest {
   oneof message {
     DrawEvent draw_event = 1;
   }
 }
 
-message PubToClientMessage {
+message ClientDrawResponse {
   oneof message {
     DrawEvent draw_event = 1;
     History initial_history = 2;

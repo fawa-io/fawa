@@ -184,19 +184,19 @@ func (x *History) GetEvents() []*DrawEvent {
 	return nil
 }
 
-type ClientDrawMessage struct {
+type ClientDrawRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Message:
 	//
-	//	*ClientDrawMessage_DrawEvent
-	Message isClientDrawMessage_Message `protobuf_oneof:"message"`
+	//	*ClientDrawRequest_DrawEvent
+	Message isClientDrawRequest_Message `protobuf_oneof:"message"`
 }
 
-func (x *ClientDrawMessage) Reset() {
-	*x = ClientDrawMessage{}
+func (x *ClientDrawRequest) Reset() {
+	*x = ClientDrawRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fawa_canva_v1_canva_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -204,13 +204,13 @@ func (x *ClientDrawMessage) Reset() {
 	}
 }
 
-func (x *ClientDrawMessage) String() string {
+func (x *ClientDrawRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ClientDrawMessage) ProtoMessage() {}
+func (*ClientDrawRequest) ProtoMessage() {}
 
-func (x *ClientDrawMessage) ProtoReflect() protoreflect.Message {
+func (x *ClientDrawRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_fawa_canva_v1_canva_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -222,49 +222,49 @@ func (x *ClientDrawMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ClientDrawMessage.ProtoReflect.Descriptor instead.
-func (*ClientDrawMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClientDrawRequest.ProtoReflect.Descriptor instead.
+func (*ClientDrawRequest) Descriptor() ([]byte, []int) {
 	return file_fawa_canva_v1_canva_proto_rawDescGZIP(), []int{2}
 }
 
-func (m *ClientDrawMessage) GetMessage() isClientDrawMessage_Message {
+func (m *ClientDrawRequest) GetMessage() isClientDrawRequest_Message {
 	if m != nil {
 		return m.Message
 	}
 	return nil
 }
 
-func (x *ClientDrawMessage) GetDrawEvent() *DrawEvent {
-	if x, ok := x.GetMessage().(*ClientDrawMessage_DrawEvent); ok {
+func (x *ClientDrawRequest) GetDrawEvent() *DrawEvent {
+	if x, ok := x.GetMessage().(*ClientDrawRequest_DrawEvent); ok {
 		return x.DrawEvent
 	}
 	return nil
 }
 
-type isClientDrawMessage_Message interface {
-	isClientDrawMessage_Message()
+type isClientDrawRequest_Message interface {
+	isClientDrawRequest_Message()
 }
 
-type ClientDrawMessage_DrawEvent struct {
+type ClientDrawRequest_DrawEvent struct {
 	DrawEvent *DrawEvent `protobuf:"bytes,1,opt,name=draw_event,json=drawEvent,proto3,oneof"`
 }
 
-func (*ClientDrawMessage_DrawEvent) isClientDrawMessage_Message() {}
+func (*ClientDrawRequest_DrawEvent) isClientDrawRequest_Message() {}
 
-type PubToClientMessage struct {
+type ClientDrawResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	// Types that are assignable to Message:
 	//
-	//	*PubToClientMessage_DrawEvent
-	//	*PubToClientMessage_InitialHistory
-	Message isPubToClientMessage_Message `protobuf_oneof:"message"`
+	//	*ClientDrawResponse_DrawEvent
+	//	*ClientDrawResponse_InitialHistory
+	Message isClientDrawResponse_Message `protobuf_oneof:"message"`
 }
 
-func (x *PubToClientMessage) Reset() {
-	*x = PubToClientMessage{}
+func (x *ClientDrawResponse) Reset() {
+	*x = ClientDrawResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_fawa_canva_v1_canva_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -272,13 +272,13 @@ func (x *PubToClientMessage) Reset() {
 	}
 }
 
-func (x *PubToClientMessage) String() string {
+func (x *ClientDrawResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PubToClientMessage) ProtoMessage() {}
+func (*ClientDrawResponse) ProtoMessage() {}
 
-func (x *PubToClientMessage) ProtoReflect() protoreflect.Message {
+func (x *ClientDrawResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_fawa_canva_v1_canva_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -290,47 +290,47 @@ func (x *PubToClientMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PubToClientMessage.ProtoReflect.Descriptor instead.
-func (*PubToClientMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClientDrawResponse.ProtoReflect.Descriptor instead.
+func (*ClientDrawResponse) Descriptor() ([]byte, []int) {
 	return file_fawa_canva_v1_canva_proto_rawDescGZIP(), []int{3}
 }
 
-func (m *PubToClientMessage) GetMessage() isPubToClientMessage_Message {
+func (m *ClientDrawResponse) GetMessage() isClientDrawResponse_Message {
 	if m != nil {
 		return m.Message
 	}
 	return nil
 }
 
-func (x *PubToClientMessage) GetDrawEvent() *DrawEvent {
-	if x, ok := x.GetMessage().(*PubToClientMessage_DrawEvent); ok {
+func (x *ClientDrawResponse) GetDrawEvent() *DrawEvent {
+	if x, ok := x.GetMessage().(*ClientDrawResponse_DrawEvent); ok {
 		return x.DrawEvent
 	}
 	return nil
 }
 
-func (x *PubToClientMessage) GetInitialHistory() *History {
-	if x, ok := x.GetMessage().(*PubToClientMessage_InitialHistory); ok {
+func (x *ClientDrawResponse) GetInitialHistory() *History {
+	if x, ok := x.GetMessage().(*ClientDrawResponse_InitialHistory); ok {
 		return x.InitialHistory
 	}
 	return nil
 }
 
-type isPubToClientMessage_Message interface {
-	isPubToClientMessage_Message()
+type isClientDrawResponse_Message interface {
+	isClientDrawResponse_Message()
 }
 
-type PubToClientMessage_DrawEvent struct {
+type ClientDrawResponse_DrawEvent struct {
 	DrawEvent *DrawEvent `protobuf:"bytes,1,opt,name=draw_event,json=drawEvent,proto3,oneof"`
 }
 
-type PubToClientMessage_InitialHistory struct {
+type ClientDrawResponse_InitialHistory struct {
 	InitialHistory *History `protobuf:"bytes,2,opt,name=initial_history,json=initialHistory,proto3,oneof"`
 }
 
-func (*PubToClientMessage_DrawEvent) isPubToClientMessage_Message() {}
+func (*ClientDrawResponse_DrawEvent) isClientDrawResponse_Message() {}
 
-func (*PubToClientMessage_InitialHistory) isPubToClientMessage_Message() {}
+func (*ClientDrawResponse_InitialHistory) isClientDrawResponse_Message() {}
 
 var File_fawa_canva_v1_canva_proto protoreflect.FileDescriptor
 
@@ -355,13 +355,13 @@ var file_fawa_canva_v1_canva_proto_rawDesc = []byte{
 	0x32, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x66, 0x61, 0x77, 0x61, 0x2e, 0x63, 0x61,
 	0x6e, 0x76, 0x61, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x72, 0x61, 0x77, 0x45, 0x76, 0x65, 0x6e, 0x74,
 	0x52, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x22, 0x5f, 0x0a, 0x11, 0x43, 0x6c, 0x69, 0x65,
-	0x6e, 0x74, 0x44, 0x72, 0x61, 0x77, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x3f, 0x0a,
+	0x6e, 0x74, 0x44, 0x72, 0x61, 0x77, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x3f, 0x0a,
 	0x0a, 0x64, 0x72, 0x61, 0x77, 0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x66, 0x61, 0x77, 0x61, 0x2e, 0x63,
 	0x61, 0x6e, 0x76, 0x61, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x72, 0x61, 0x77, 0x45, 0x76, 0x65, 0x6e,
 	0x74, 0x48, 0x00, 0x52, 0x09, 0x64, 0x72, 0x61, 0x77, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x42, 0x09,
-	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0xa9, 0x01, 0x0a, 0x12, 0x50, 0x75,
-	0x62, 0x54, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0xa9, 0x01, 0x0a, 0x12, 0x43, 0x6c,
+	0x69, 0x65, 0x6e, 0x74, 0x44, 0x72, 0x61, 0x77, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x12, 0x3f, 0x0a, 0x0a, 0x64, 0x72, 0x61, 0x77, 0x5f, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x66, 0x61, 0x77,
 	0x61, 0x2e, 0x63, 0x61, 0x6e, 0x76, 0x61, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x72, 0x61, 0x77, 0x45,
@@ -375,10 +375,10 @@ var file_fawa_canva_v1_canva_proto_rawDesc = []byte{
 	0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x62, 0x0a, 0x0b, 0x43, 0x6f, 0x6c, 0x6c, 0x61, 0x62, 0x6f,
 	0x72, 0x61, 0x74, 0x65, 0x12, 0x26, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x66, 0x61, 0x77,
 	0x61, 0x2e, 0x63, 0x61, 0x6e, 0x76, 0x61, 0x2e, 0x76, 0x31, 0x2e, 0x43, 0x6c, 0x69, 0x65, 0x6e,
-	0x74, 0x44, 0x72, 0x61, 0x77, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x1a, 0x27, 0x2e, 0x70,
+	0x74, 0x44, 0x72, 0x61, 0x77, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x27, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x2e, 0x66, 0x61, 0x77, 0x61, 0x2e, 0x63, 0x61, 0x6e, 0x76, 0x61, 0x2e,
-	0x76, 0x31, 0x2e, 0x50, 0x75, 0x62, 0x54, 0x6f, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x4d, 0x65,
-	0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x01, 0x30, 0x01, 0x42, 0x33, 0x5a, 0x31, 0x67, 0x69, 0x74,
+	0x76, 0x31, 0x2e, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x44, 0x72, 0x61, 0x77, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01, 0x30, 0x01, 0x42, 0x33, 0x5a, 0x31, 0x67, 0x69, 0x74,
 	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x66, 0x61, 0x77, 0x61, 0x2d, 0x69, 0x6f, 0x2f,
 	0x66, 0x61, 0x77, 0x61, 0x2f, 0x67, 0x65, 0x6e, 0x2f, 0x66, 0x61, 0x77, 0x61, 0x2f, 0x63, 0x61,
 	0x6e, 0x76, 0x61, 0x2f, 0x76, 0x31, 0x3b, 0x63, 0x61, 0x6e, 0x76, 0x61, 0x76, 0x31, 0x62, 0x06,
@@ -401,16 +401,16 @@ var file_fawa_canva_v1_canva_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_fawa_canva_v1_canva_proto_goTypes = []interface{}{
 	(*DrawEvent)(nil),          // 0: proto.fawa.canva.v1.DrawEvent
 	(*History)(nil),            // 1: proto.fawa.canva.v1.History
-	(*ClientDrawMessage)(nil),  // 2: proto.fawa.canva.v1.ClientDrawMessage
-	(*PubToClientMessage)(nil), // 3: proto.fawa.canva.v1.PubToClientMessage
+	(*ClientDrawRequest)(nil),  // 2: proto.fawa.canva.v1.ClientDrawRequest
+	(*ClientDrawResponse)(nil), // 3: proto.fawa.canva.v1.ClientDrawResponse
 }
 var file_fawa_canva_v1_canva_proto_depIdxs = []int32{
 	0, // 0: proto.fawa.canva.v1.History.events:type_name -> proto.fawa.canva.v1.DrawEvent
-	0, // 1: proto.fawa.canva.v1.ClientDrawMessage.draw_event:type_name -> proto.fawa.canva.v1.DrawEvent
-	0, // 2: proto.fawa.canva.v1.PubToClientMessage.draw_event:type_name -> proto.fawa.canva.v1.DrawEvent
-	1, // 3: proto.fawa.canva.v1.PubToClientMessage.initial_history:type_name -> proto.fawa.canva.v1.History
-	2, // 4: proto.fawa.canva.v1.CanvaService.Collaborate:input_type -> proto.fawa.canva.v1.ClientDrawMessage
-	3, // 5: proto.fawa.canva.v1.CanvaService.Collaborate:output_type -> proto.fawa.canva.v1.PubToClientMessage
+	0, // 1: proto.fawa.canva.v1.ClientDrawRequest.draw_event:type_name -> proto.fawa.canva.v1.DrawEvent
+	0, // 2: proto.fawa.canva.v1.ClientDrawResponse.draw_event:type_name -> proto.fawa.canva.v1.DrawEvent
+	1, // 3: proto.fawa.canva.v1.ClientDrawResponse.initial_history:type_name -> proto.fawa.canva.v1.History
+	2, // 4: proto.fawa.canva.v1.CanvaService.Collaborate:input_type -> proto.fawa.canva.v1.ClientDrawRequest
+	3, // 5: proto.fawa.canva.v1.CanvaService.Collaborate:output_type -> proto.fawa.canva.v1.ClientDrawResponse
 	5, // [5:6] is the sub-list for method output_type
 	4, // [4:5] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -449,7 +449,7 @@ func file_fawa_canva_v1_canva_proto_init() {
 			}
 		}
 		file_fawa_canva_v1_canva_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ClientDrawMessage); i {
+			switch v := v.(*ClientDrawRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -461,7 +461,7 @@ func file_fawa_canva_v1_canva_proto_init() {
 			}
 		}
 		file_fawa_canva_v1_canva_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PubToClientMessage); i {
+			switch v := v.(*ClientDrawResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -474,11 +474,11 @@ func file_fawa_canva_v1_canva_proto_init() {
 		}
 	}
 	file_fawa_canva_v1_canva_proto_msgTypes[2].OneofWrappers = []interface{}{
-		(*ClientDrawMessage_DrawEvent)(nil),
+		(*ClientDrawRequest_DrawEvent)(nil),
 	}
 	file_fawa_canva_v1_canva_proto_msgTypes[3].OneofWrappers = []interface{}{
-		(*PubToClientMessage_DrawEvent)(nil),
-		(*PubToClientMessage_InitialHistory)(nil),
+		(*ClientDrawResponse_DrawEvent)(nil),
+		(*ClientDrawResponse_InitialHistory)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
