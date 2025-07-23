@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -216,7 +217,6 @@ func (s *FileServiceHandler) ReceiveFile(
 	return nil
 }
 
-// GetDownloadURL generates a presigned URL for a file.
 func (s *FileServiceHandler) GetDownloadURL(
 	ctx context.Context,
 	req *connect.Request[filev1.GetDownloadURLRequest],
@@ -241,16 +241,32 @@ func (s *FileServiceHandler) GetDownloadURL(
 		return nil, connect.NewError(connect.CodeInternal, errors.New("could not generate download link"))
 	}
 
-	internalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	publicEndpointStr := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	if publicEndpointStr == "" {
+		return connect.NewResponse(&filev1.GetDownloadURLResponse{
+			Url:      presignedURL.String(),
+			Filename: metadata.Filename,
+		}), nil
+	}
 
-	finalURL := presignedURL.String()
-	if internalEndpoint != "" && publicEndpoint != "" {
-		finalURL = strings.Replace(finalURL, internalEndpoint, publicEndpoint, 1)
+	publicEndpoint, err := url.Parse(publicEndpointStr)
+	if err != nil {
+		fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT '%s': %v", publicEndpointStr, err)
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("invalid public endpoint configuration"))
+	}
+
+	finalURL := presignedURL
+	finalURL.Scheme = publicEndpoint.Scheme
+	finalURL.Host = publicEndpoint.Host
+
+	// publicEndpoint.Path = /minio, presignedURL.Path = /fawa/file.docx
+	// finalpath = /minio/fawa/file.docx
+	if publicEndpoint.Path != "" {
+		finalURL.Path = publicEndpoint.Path + finalURL.Path
 	}
 
 	res := connect.NewResponse(&filev1.GetDownloadURLResponse{
-		Url:      finalURL,
+		Url:      finalURL.String(),
 		Filename: metadata.Filename,
 	})
 
