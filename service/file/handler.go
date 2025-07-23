@@ -15,7 +15,6 @@
 package file
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"errors"
 	"fmt"
@@ -27,6 +26,8 @@ import (
 	"sync"
 	"time"
 
+	"connectrpc.com/connect"
+
 	filev1 "github.com/fawa-io/fawa/gen/fawa/file/v1"
 	"github.com/fawa-io/fawa/pkg/fwlog"
 	"github.com/fawa-io/fawa/pkg/storage"
@@ -37,6 +38,12 @@ import (
 // It depends on a Storage interface for data persistence.
 type FileServiceHandler struct {
 	UploadDir string
+}
+
+// Close shuts down the file service and its resources
+func (s *FileServiceHandler) Close() error {
+	fwlog.Info("Shutting down file service...")
+	return storage.Close()
 }
 
 // SendFile handles the client-streaming RPC to upload a file.
