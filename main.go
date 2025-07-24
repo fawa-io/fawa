@@ -23,9 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
-
 	"github.com/fawa-io/fawa/gen/fawa/canva/v1/canvav1connect"
 	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
 	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
@@ -83,9 +80,8 @@ func main() {
 	mux.Handle(canvaProcedure, canvaHandler)
 
 	fawaSrv := &http.Server{
-		Addr: addr,
-		// Use h2c to handle gRPC requests over plain HTTP/2 (without TLS).
-		Handler: h2c.NewHandler(cors.NewCORS().Handler(mux), &http2.Server{}),
+		Addr:    addr,
+		Handler: cors.NewCORS().Handler(mux),
 	}
 
 	// Setup graceful shutdown
