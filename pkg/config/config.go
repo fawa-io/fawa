@@ -30,6 +30,7 @@ type Config struct {
 	UploadDir string `mapstructure:"uploadDir"`
 	CertFile  string `mapstructure:"certFile"`
 	KeyFile   string `mapstructure:"keyFile"`
+	LogLevel  string `mapstructure:"logLevel"`
 }
 
 var (
@@ -55,10 +56,10 @@ func Get() Config {
 }
 
 func LoadAndWatch() error {
-	pflag.String("server.addr", "", "List of HTTP service address (e.g., '127.0.0.1:9090')")
-	pflag.String("file.uploadDir", "", "Upload files dir")
-	pflag.String("server.certFile", "", "Path to the TLS certificate file.")
-	pflag.String("server.keyFile", "", "Path to the TLS private key file.")
+	pflag.String("addr", "", "List of HTTP service address (e.g., '127.0.0.1:9090')")
+	pflag.String("uploadDir", "", "Upload files dir")
+	pflag.String("certFile", "", "Path to the TLS certificate file.")
+	pflag.String("keyFile", "", "Path to the TLS private key file.")
 	pflag.Parse()
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
@@ -93,9 +94,15 @@ func LoadAndWatch() error {
 		defer mu.Unlock()
 
 		if err := viper.Unmarshal(&config); err != nil {
-			fwlog.Errorf("error Reloading Th eConfiguration: %v", err)
+			fwlog.Errorf("Error while reloading config: %v", err)
 		} else {
-			fwlog.Infof("the Configuration Has Been Successfully Reloaded。")
+			newLogLevel, err := fwlog.ParseLevel(config.LogLevel)
+			if err != nil {
+				fwlog.Warnf("New log level in config is invalid: %v. Keeping previous level.", err)
+			} else {
+				fwlog.SetLevel(newLogLevel)
+				fwlog.Infof("Log level reloaded successfully to: %s", config.LogLevel)
+			}
 		}
 	})
 	viper.WatchConfig()

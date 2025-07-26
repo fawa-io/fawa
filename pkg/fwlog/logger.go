@@ -15,7 +15,9 @@
 package fwlog
 
 import (
+	"fmt"
 	"io"
+	"strings"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -67,4 +69,21 @@ func (lv Level) toZapLevel() zapcore.Level {
 	default:
 		return zapcore.InfoLevel
 	}
+}
+
+func ParseLevel(levelStr string) (Level, error) {
+	switch strings.ToLower(levelStr) {
+	case "debug":
+		return LevelDebug, nil
+	case "info":
+		return LevelInfo, nil
+	case "warn":
+		return LevelWarn, nil
+	case "error":
+		return LevelError, nil
+	case "fatal":
+		return LevelFatal, nil
+	}
+	// 如果字符串无效，返回一个默认值和一个错误
+	return LevelInfo, fmt.Errorf("invalid log level: '%s'", levelStr)
 }

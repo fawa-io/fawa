@@ -40,16 +40,23 @@ func main() {
 		fwlog.Fatalf("Failed to initialize configuration: %v", err)
 	}
 	// dev mode
-	fwlog.SetLevel(fwlog.LevelDebug)
+	cfg := config.Get()
+
+	logLevel, err := fwlog.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		fwlog.Warnf("Invalid initial log level '%s': %v. Using default.", cfg.LogLevel, err)
+	}
+	fwlog.SetLevel(logLevel)
+	fwlog.Infof("Logger initialized with level: %s", cfg.LogLevel)
 
 	// Create upload dir for file service.
-	if !util.Exist(config.Get().UploadDir) {
-		if err := util.CreateDir(config.Get().UploadDir); err != nil {
+	if !util.Exist(cfg.UploadDir) {
+		if err := util.CreateDir(cfg.UploadDir); err != nil {
 			fwlog.Fatal(err)
 		}
 	}
 	fileSvcHdr := &file.FileServiceHandler{
-		UploadDir: config.Get().UploadDir,
+		UploadDir: cfg.UploadDir,
 	}
 	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
 
@@ -67,7 +74,7 @@ func main() {
 	mux.Handle(canvaProcedure, canvaHandler)
 
 	fawaSrv := &http.Server{
-		Addr:    config.Get().Addr,
+		Addr:    cfg.Addr,
 		Handler: cors.NewCORS().Handler(mux),
 	}
 
@@ -99,10 +106,10 @@ func main() {
 		os.Exit(0)
 	}()
 
-	fwlog.Infof("Server starting on %v", config.Get().Addr)
+	fwlog.Infof("Server starting on %v", cfg.Addr)
 
 	// Start the HTTPS server.
-	if err := fawaSrv.ListenAndServeTLS(config.Get().CertFile, config.Get().KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := fawaSrv.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fwlog.Fatalf("Failed to start server: %v", err)
 	}
 }
