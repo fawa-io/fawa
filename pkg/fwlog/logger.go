@@ -84,6 +84,6 @@ func ParseLevel(levelStr string) (Level, error) {
 	case "fatal":
 		return LevelFatal, nil
 	}
-	// 如果字符串无效，返回一个默认值和一个错误
+
 	return LevelInfo, fmt.Errorf("invalid log level: '%s'", levelStr)
 }

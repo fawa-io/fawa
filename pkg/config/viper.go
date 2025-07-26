@@ -41,7 +41,7 @@ var (
 	config Config
 )
 
-func Initconfig() error {
+func InitConfig() error {
 	var initErr error
 	once.Do(func() {
 		initErr = LoadAndWatch()
@@ -86,6 +86,12 @@ func LoadAndWatch() error {
 		return fmt.Errorf("the initial configuration cannot be decoded into the struct: %w", err)
 	}
 	mu.Unlock()
+
+	viper.SetDefault("addr", "127.0.0.1:8080")
+	viper.SetDefault("uploadDir", "./upload")
+	viper.SetDefault("certFile", "cert.pem")
+	viper.SetDefault("keyFile", "key.pem")
+	viper.SetDefault("logLevel", "info")
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		fwlog.Infof("the Profile HasChanged: %s。reloading...", e.Name)

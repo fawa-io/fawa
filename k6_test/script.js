@@ -39,6 +39,5 @@ export default function () {
   
   // 检查响应状态码是否为200
   check(res, { 'status was 200': (r) => r.status == 200 });
-
-  // 每个请求后随机等待一小段时间，模仿真实用户行为
+  
 } 

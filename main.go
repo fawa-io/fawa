@@ -36,7 +36,7 @@ import (
 )
 
 func main() {
-	if err := config.Initconfig(); err != nil {
+	if err := config.InitConfig(); err != nil {
 		fwlog.Fatalf("Failed to initialize configuration: %v", err)
 	}
 	// dev mode
