@@ -15,9 +15,12 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
+	"runtime"
 	"testing"
 	"time"
 
@@ -157,4 +160,169 @@ func TestDragonflyStorage_GetFileMeta(t *testing.T) {
 			}
 		})
 	}
+}
+
+// setupRealDragonfly creates a real client and skips tests if the service is unavailable.
+func setupRealDragonfly(b *testing.B) *DragonflyStorage {
+	client := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379", // Default address for Dragonfly/Redis
+		DB:   0,
+	})
+
+	// Check if the connection is alive
+	if err := client.Ping(context.Background()).Err(); err != nil {
+		b.Skipf("skipping benchmark: cannot connect to Dragonfly/Redis on localhost:6379. Error: %v", err)
+	}
+
+	return &DragonflyStorage{client: client}
+}
+
+func BenchmarkGetFileMeta(b *testing.B) {
+	storage := setupRealDragonfly(b)
+	if b.Skipped() {
+		return
+	}
+
+	metadata := &FileMetadata{
+		Filename:    "benchmark.txt",
+		Size:        1024,
+		StoragePath: "/benchmark/path",
+	}
+	// Pre-populate data for the benchmark to fetch.
+	key := "benchmark-get-key"
+	err := storage.saveFileMeta(key, metadata)
+	if err != nil {
+		b.Fatalf("failed to set up benchmark data: %v", err)
+	}
+
+	// Low Concurrency (Sequential)
+	b.Run("Low-Concurrency-1", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_, err := storage.getFileMeta(key)
+			if err != nil {
+				b.Error(err)
+			}
+		}
+	})
+
+	// Medium Concurrency (CPUs / 2)
+	if medProcs := runtime.NumCPU() / 2; medProcs > 1 {
+		b.Run(fmt.Sprintf("Medium-Concurrency-%d", medProcs), func(b *testing.B) {
+			prevProcs := runtime.GOMAXPROCS(medProcs)
+			defer runtime.GOMAXPROCS(prevProcs)
+
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for pb.Next() {
+					_, err := storage.getFileMeta(key)
+					if err != nil {
+						b.Error(err)
+					}
+				}
+			})
+		})
+	}
+
+	// High Concurrency (Default GOMAXPROCS)
+	b.Run(fmt.Sprintf("High-Concurrency-%d", runtime.NumCPU()), func(b *testing.B) {
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_, err := storage.getFileMeta(key)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+		})
+	})
+
+	// Very High Concurrency (CPUs * 2)
+	veryHighProcs := runtime.NumCPU() * 2
+	b.Run(fmt.Sprintf("VeryHigh-Concurrency-%d", veryHighProcs), func(b *testing.B) {
+		prevProcs := runtime.GOMAXPROCS(veryHighProcs)
+		defer runtime.GOMAXPROCS(prevProcs)
+
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_, err := storage.getFileMeta(key)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+		})
+	})
+}
+
+func BenchmarkSaveFileMeta(b *testing.B) {
+	storage := setupRealDragonfly(b)
+	if b.Skipped() {
+		return
+	}
+	metadata := &FileMetadata{
+		Filename:    "benchmark.txt",
+		Size:        1024,
+		StoragePath: "/benchmark/path",
+	}
+	key := "benchmark-save-key"
+
+	// Low Concurrency (Sequential)
+	b.Run("Low-Concurrency-1", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			err := storage.saveFileMeta(key, metadata)
+			if err != nil {
+				b.Error(err)
+			}
+		}
+	})
+
+	// Medium Concurrency (CPUs / 2)
+	if medProcs := runtime.NumCPU() / 2; medProcs > 1 {
+		b.Run(fmt.Sprintf("Medium-Concurrency-%d", medProcs), func(b *testing.B) {
+			prevProcs := runtime.GOMAXPROCS(medProcs)
+			defer runtime.GOMAXPROCS(prevProcs)
+
+			b.ResetTimer()
+			b.RunParallel(func(pb *testing.PB) {
+				for pb.Next() {
+					err := storage.saveFileMeta(key, metadata)
+					if err != nil {
+						b.Error(err)
+					}
+				}
+			})
+		})
+	}
+
+	// High Concurrency (Default GOMAXPROCS)
+	b.Run(fmt.Sprintf("High-Concurrency-%d", runtime.NumCPU()), func(b *testing.B) {
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				err := storage.saveFileMeta(key, metadata)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+		})
+	})
+
+	// Very High Concurrency (CPUs * 2)
+	veryHighProcs := runtime.NumCPU() * 2
+	b.Run(fmt.Sprintf("VeryHigh-Concurrency-%d", veryHighProcs), func(b *testing.B) {
+		prevProcs := runtime.GOMAXPROCS(veryHighProcs)
+		defer runtime.GOMAXPROCS(prevProcs)
+
+		b.ResetTimer()
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				err := storage.saveFileMeta(key, metadata)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+		})
+	})
 }
