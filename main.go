@@ -16,7 +16,7 @@ package main
 
 import (
 	"context"
-	"flag"
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,6 +26,7 @@ import (
 	"github.com/fawa-io/fawa/gen/fawa/canva/v1/canvav1connect"
 	"github.com/fawa-io/fawa/gen/fawa/file/v1/filev1connect"
 	"github.com/fawa-io/fawa/gen/fawa/greet/v1/greetv1connect"
+	"github.com/fawa-io/fawa/pkg/config"
 	"github.com/fawa-io/fawa/pkg/cors"
 	"github.com/fawa-io/fawa/pkg/fwlog"
 	"github.com/fawa-io/fawa/pkg/util"
@@ -34,35 +35,21 @@ import (
 	"github.com/fawa-io/fawa/service/greet"
 )
 
-var (
-	addr      string
-	uploadDir string
-	certFile  string
-	keyFile   string
-)
-
-func init() {
-	flag.StringVar(&addr, "addr", "127.0.0.1:8080", "List of HTTP service address (e.g., '127.0.0.1:8080')")
-	flag.StringVar(&uploadDir, "upload", "./upload", "Upload files dir")
-	flag.StringVar(&certFile, "cert-file", "cert.pem", "Path to the TLS certificate file.")
-	flag.StringVar(&keyFile, "key-file", "key.pem", "Path to the TLS private key file.")
-}
-
 func main() {
+	if err := config.Initconfig(); err != nil {
+		fwlog.Fatalf("Failed to initialize configuration: %v", err)
+	}
 	// dev mode
 	fwlog.SetLevel(fwlog.LevelDebug)
 
-	flag.Parse()
-
 	// Create upload dir for file service.
-	if !util.Exist(uploadDir) {
-		if err := util.CreateDir(uploadDir); err != nil {
+	if !util.Exist(config.Get().UploadDir) {
+		if err := util.CreateDir(config.Get().UploadDir); err != nil {
 			fwlog.Fatal(err)
 		}
 	}
-
 	fileSvcHdr := &file.FileServiceHandler{
-		UploadDir: uploadDir,
+		UploadDir: config.Get().UploadDir,
 	}
 	fileProcedure, fileHandler := filev1connect.NewFileServiceHandler(fileSvcHdr)
 
@@ -80,7 +67,7 @@ func main() {
 	mux.Handle(canvaProcedure, canvaHandler)
 
 	fawaSrv := &http.Server{
-		Addr:    addr,
+		Addr:    config.Get().Addr,
 		Handler: cors.NewCORS().Handler(mux),
 	}
 
@@ -112,10 +99,10 @@ func main() {
 		os.Exit(0)
 	}()
 
-	fwlog.Infof("Server starting on %v", addr)
+	fwlog.Infof("Server starting on %v", config.Get().Addr)
 
 	// Start the HTTPS server.
-	if err := fawaSrv.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
+	if err := fawaSrv.ListenAndServeTLS(config.Get().CertFile, config.Get().KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fwlog.Fatalf("Failed to start server: %v", err)
 	}
 }
