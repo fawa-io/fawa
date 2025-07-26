@@ -65,7 +65,7 @@ func main() {
 
 	// Create WebTransport server
 	wtServer := &webtransport.Server{
-		H3: h3Server, // H3 字段为 *http3.Server
+		H3: *h3Server, // H3: *h3Server,
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Allow all origins for development
 		},

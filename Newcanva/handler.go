@@ -110,7 +110,7 @@ func (h *CanvaServiceHandler) CreateCanvas(w http.ResponseWriter, r *http.Reques
 	h.sessions[code] = session
 	h.sessionsMu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write([]byte(fmt.Sprintf(`{"code":"%s"}`, code))); err != nil {
+	if _, err := fmt.Fprintf(w, `{"code":"%s"}`, code); err != nil {
 		fwlog.Warnf("write response failed: %v", err)
 	}
 }
@@ -209,6 +209,7 @@ func (h *CanvaServiceHandler) HandleWebSocket(w http.ResponseWriter, r *http.Req
 		fwlog.Errorf("Failed to upgrade to WebSocket: %v", err)
 		return
 	}
+	defer func() { _ = conn.Close() }()
 
 	// Create session and stream for WebSocket
 	session := &WebTransportSession{
@@ -245,7 +246,7 @@ func (h *CanvaServiceHandler) HandleWebSocket(w http.ResponseWriter, r *http.Req
 
 // handleWebSocketMessages handles WebSocket message processing
 func (h *CanvaServiceHandler) handleWebSocketMessages(clientID string, conn *websocket.Conn, stream *WebTransportStream) {
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	for {
 		// Read message
@@ -376,7 +377,9 @@ func (h *CanvaServiceHandler) unregisterClient(id string) {
 	if cl, exists := h.clients[id]; exists {
 		close(cl.done)
 		if cl.wsConn != nil {
-			cl.wsConn.Close()
+			if err := cl.wsConn.Close(); err != nil {
+				fwlog.Warnf("wsConn close failed: %v", err)
+			}
 		}
 		delete(h.clients, id)
 		fwlog.Infof("Client %s unregistered, active connections: %d", id, len(h.clients))
@@ -502,7 +505,9 @@ func (h *CanvaServiceHandler) Close() {
 	for _, cl := range h.clients {
 		close(cl.done)
 		if cl.wsConn != nil {
-			cl.wsConn.Close()
+			if err := cl.wsConn.Close(); err != nil {
+				fwlog.Warnf("wsConn close failed: %v", err)
+			}
 		}
 	}
 	h.clients = make(map[string]*client)
