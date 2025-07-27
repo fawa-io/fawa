@@ -19,18 +19,18 @@ import (
 	"math/big"
 )
 
-var runesofrandom = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var runesOfRandom = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-func Generaterandomstring(n int) string {
+func GenerateRandomString(n int) string {
 	b := make([]rune, n)
-	max := big.NewInt(int64(len(runesofrandom)))
+	max := big.NewInt(int64(len(runesOfRandom)))
 
 	for i := range b {
 		randIndex, err := rand.Int(rand.Reader, max)
 		if err != nil {
 			panic(err)
 		}
-		b[i] = runesofrandom[randIndex.Int64()]
+		b[i] = runesOfRandom[randIndex.Int64()]
 	}
 
 	return string(b)

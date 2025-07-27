@@ -30,6 +30,11 @@ import (
 	"github.com/quic-go/webtransport-go"
 )
 
+const (
+	sessionCleanerInterval = 1 * time.Minute
+	sessionExpiryDuration  = 10 * time.Minute
+)
+
 // CanvasSession represents a collaborative drawing session
 // All clients (WebSocket or WebTransport) join a session by code
 // Each session maintains its own clients, history, and broadcast channel
@@ -41,7 +46,6 @@ type CanvasSession struct {
 	History    []*DrawEvent
 	HistoryMu  sync.RWMutex
 	Broadcast  chan *DrawEvent
-	Done       chan struct{}
 	LastActive time.Time
 }
 
@@ -77,12 +81,11 @@ func NewCanvasServiceHandler() *CanvasServiceHandler {
 
 // CreateCanvas creates a new canvas session and returns its code
 func (h *CanvasServiceHandler) CreateCanvas(w http.ResponseWriter, r *http.Request) {
-	code := util.Generaterandomstring(6)
+	code := util.GenerateRandomString(6)
 	session := &CanvasSession{
 		Code:       code,
 		Clients:    make(map[string]*SessionClient),
 		Broadcast:  make(chan *DrawEvent, 100),
-		Done:       make(chan struct{}),
 		LastActive: time.Now(),
 	}
 	h.SessionsMu.Lock()
@@ -127,13 +130,11 @@ func (h *CanvasServiceHandler) HandleWebSocket(w http.ResponseWriter, r *http.Re
 		return
 	}
 	defer func() { _ = conn.Close() }()
-	clientID := util.Generaterandomstring(8)
-	pr, pw := io.Pipe()
+	clientID := util.GenerateRandomString(8)
 	client := &SessionClient{
-		ID:           clientID,
-		ConnType:     "websocket",
-		WSConn:       conn,
-		OutputStream: pw,
+		ID:       clientID,
+		ConnType: "websocket",
+		WSConn:   conn,
 	}
 	session.ClientsMu.Lock()
 	session.Clients[clientID] = client
@@ -144,21 +145,6 @@ func (h *CanvasServiceHandler) HandleWebSocket(w http.ResponseWriter, r *http.Re
 		session.ClientsMu.Unlock()
 		if err := conn.Close(); err != nil {
 			fwlog.Warnf("wsConn close failed: %v", err)
-		}
-		_ = pr.Close()
-		_ = pw.Close()
-	}()
-	// 启动后台 goroutine 负责从 pipe 读数据并写入 WebSocket
-	go func() {
-		dec := json.NewDecoder(pr)
-		for {
-			var resp ClientDrawResponse
-			if err := dec.Decode(&resp); err != nil {
-				return
-			}
-			if err := conn.WriteJSON(resp); err != nil {
-				return
-			}
 		}
 	}()
 
@@ -208,7 +194,7 @@ func (h *CanvasServiceHandler) HandleWebTransport(w http.ResponseWriter, r *http
 			fwlog.Warnf("webSession.CloseWithError failed: %v", err)
 		}
 	}()
-	clientID := util.Generaterandomstring(8)
+	clientID := util.GenerateRandomString(8)
 	// Open a single output stream for this client
 	outputStream, err := wtSession.OpenStream()
 	if err != nil {
@@ -256,7 +242,7 @@ func (h *CanvasServiceHandler) HandleWebTransport(w http.ResponseWriter, r *http
 	}
 
 	go h.sessionBroadcastWriter(session, client)
-	h.sessionWebTransportReader(session, client)
+	h.sessionWebTransportReader(session, client, r.Context())
 }
 
 // sessionBroadcastWriter writes all broadcast events to the client's output stream
@@ -301,9 +287,9 @@ func (h *CanvasServiceHandler) sessionWebSocketReader(session *CanvasSession, cl
 }
 
 // sessionWebTransportReader reads messages from a WebTransport client and broadcasts draw events
-func (h *CanvasServiceHandler) sessionWebTransportReader(session *CanvasSession, client *SessionClient) {
+func (h *CanvasServiceHandler) sessionWebTransportReader(session *CanvasSession, client *SessionClient, ctx context.Context) {
 	for {
-		stream, err := client.WTSession.AcceptStream(context.Background())
+		stream, err := client.WTSession.AcceptStream(ctx)
 		if err != nil {
 			return
 		}
@@ -336,7 +322,7 @@ func (h *CanvasServiceHandler) processSessionDrawEvent(session *CanvasSession, c
 
 // sessionCleaner removes expired sessions
 func (h *CanvasServiceHandler) sessionCleaner() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(sessionCleanerInterval)
 	defer ticker.Stop()
 	for {
 		<-ticker.C
@@ -346,8 +332,7 @@ func (h *CanvasServiceHandler) sessionCleaner() {
 			session.ClientsMu.RLock()
 			clientCount := len(session.Clients)
 			session.ClientsMu.RUnlock()
-			if clientCount == 0 && now.Sub(session.LastActive) > 10*time.Minute {
-				close(session.Done)
+			if clientCount == 0 && now.Sub(session.LastActive) > sessionExpiryDuration {
 				delete(h.Sessions, code)
 				fwlog.Infof("Canvas session %s expired and removed", code)
 			}

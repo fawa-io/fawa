@@ -168,17 +168,21 @@ func (l *zapLogger) SetLevel(level Level) {
 func (l *zapLogger) SetOutput(w io.Writer) {
 	// For zap logger, we need to recreate the logger with new output
 	config := zap.NewProductionConfig()
-	config.OutputPaths = []string{"stdout"}
-	config.ErrorOutputPaths = []string{"stderr"}
 	config.EncoderConfig.TimeKey = "timestamp"
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
-	logger, err := config.Build()
-	if err != nil {
-		panic(fmt.Sprintf("failed to create logger: %v", err))
-	}
+	// Create a custom writer that writes to the provided io.Writer
+	writer := zapcore.AddSync(w)
 
+	// Create a custom core that writes to the provided writer
+	core := zapcore.NewCore(
+		zapcore.NewJSONEncoder(config.EncoderConfig),
+		writer,
+		zap.NewAtomicLevelAt(zapcore.InfoLevel),
+	)
+
+	logger := zap.New(core)
 	l.logger = logger.Sugar()
 }
 
