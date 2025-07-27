@@ -18,7 +18,9 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -94,6 +96,11 @@ func main() {
 	mux.HandleFunc("/create", canvaHandler.CreateCanvas)
 	mux.HandleFunc("/join", canvaHandler.JoinCanvas)
 
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	// Create HTTP server with CORS middleware (for WebSocket fallback)
 	httpServer := &http.Server{
 		Addr:    cfg.Addr,
@@ -141,4 +148,7 @@ func main() {
 	if err := httpServer.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		fwlog.Fatalf("Failed to start HTTP server: %v", err)
 	}
+	go func() {
+		log.Println(http.ListenAndServe("localhost:8081", nil))
+	}()
 }
