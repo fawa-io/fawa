@@ -130,7 +130,6 @@ func main() {
 		}
 
 		fwlog.Info("Server shutdown complete")
-		os.Exit(0)
 	}()
 
 	fwlog.Infof("NewCanva WebTransport server starting on %v", cfg.Addr)

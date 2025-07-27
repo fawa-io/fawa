@@ -15,7 +15,6 @@
 package main
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -48,27 +47,6 @@ type ClientDrawResponse struct {
 	InitialHistory *History   `json:"initial_history,omitempty"`
 }
 
-// WebTransportSession represents a WebTransport session
-type WebTransportSession struct {
-	ID       string
-	Stream   *WebTransportStream
-	SendChan chan []byte
-	Done     chan struct{}
-}
-
-// WebTransportStream represents a WebTransport stream
-type WebTransportStream struct {
-	ID       string
-	ReadChan chan []byte
-	Done     chan struct{}
-}
-
-// Message represents a WebTransport message
-type Message struct {
-	Type    string      `json:"type"`
-	Payload interface{} `json:"payload"`
-}
-
 // NewDrawEvent creates a new draw event
 func NewDrawEvent(eventType, color, clientID string, size, prevX, prevY, currX, currY int) *DrawEvent {
 	return &DrawEvent{
@@ -82,52 +60,4 @@ func NewDrawEvent(eventType, color, clientID string, size, prevX, prevY, currX, 
 		ClientID: clientID,
 		Time:     time.Now().UnixMilli(),
 	}
-}
-
-// ToJSON converts the draw event to JSON
-func (e *DrawEvent) ToJSON() ([]byte, error) {
-	return json.Marshal(e)
-}
-
-// FromJSON creates a draw event from JSON
-func DrawEventFromJSON(data []byte) (*DrawEvent, error) {
-	var event DrawEvent
-	err := json.Unmarshal(data, &event)
-	return &event, err
-}
-
-// ToJSON converts the history to JSON
-func (h *History) ToJSON() ([]byte, error) {
-	return json.Marshal(h)
-}
-
-// FromJSON creates a history from JSON
-func HistoryFromJSON(data []byte) (*History, error) {
-	var history History
-	err := json.Unmarshal(data, &history)
-	return &history, err
-}
-
-// ToJSON converts the client request to JSON
-func (r *ClientDrawRequest) ToJSON() ([]byte, error) {
-	return json.Marshal(r)
-}
-
-// FromJSON creates a client request from JSON
-func ClientDrawRequestFromJSON(data []byte) (*ClientDrawRequest, error) {
-	var request ClientDrawRequest
-	err := json.Unmarshal(data, &request)
-	return &request, err
-}
-
-// ToJSON converts the client response to JSON
-func (r *ClientDrawResponse) ToJSON() ([]byte, error) {
-	return json.Marshal(r)
-}
-
-// FromJSON creates a client response from JSON
-func ClientDrawResponseFromJSON(data []byte) (*ClientDrawResponse, error) {
-	var response ClientDrawResponse
-	err := json.Unmarshal(data, &response)
-	return &response, err
 }

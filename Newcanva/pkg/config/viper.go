@@ -92,7 +92,7 @@ func LoadAndWatch() error {
 	viper.SetDefault("logLevel", "info")
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		fwlog.Infof("the Profile HasChanged: %s。reloading...", e.Name)
+		fwlog.Infof("The configuration file has changed: %s. Reloading...", e.Name)
 
 		mu.Lock()
 		defer mu.Unlock()
