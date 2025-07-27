@@ -55,7 +55,7 @@ func main() {
 	tlsConfig.Certificates = []tls.Certificate{cert}
 
 	// Create canvas service handler
-	canvaHandler := NewCanvaServiceHandler()
+	canvaHandler := NewCanvasServiceHandler()
 
 	// Create HTTP/3 server for WebTransport
 	h3Server := &http3.Server{
@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// Set the WebTransport server in the handler
-	canvaHandler.wtServer = wtServer
+	canvaHandler.WTServer = wtServer
 
 	// Create HTTP server with CORS support (for WebSocket fallback)
 	mux := http.NewServeMux()
@@ -107,9 +107,6 @@ func main() {
 		<-sigCh
 
 		fwlog.Info("Shutting down server...")
-
-		// Close canvas service
-		canvaHandler.Close()
 
 		// Set timeout for server shutdown
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
