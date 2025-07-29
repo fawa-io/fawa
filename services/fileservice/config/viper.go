@@ -17,10 +17,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"sync"
 
-	"github.com/fawa-io/fawa/pkg/fwlog"
+	"github.com/fawa-io/fwpkg/fwlog"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
