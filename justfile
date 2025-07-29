@@ -25,7 +25,8 @@ lint:
     @if ! command -v golangci-lint &> /dev/null; then \
         go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest; \
     fi
-    golangci-lint run ./...
+    @echo "Linting all modules in workspace..."
+    @awk '/^\t\./ { sub("^[ \t]+", ""); print }' go.work | xargs -I {} bash -c 'echo "Linting module: {}..."; (cd {} && golangci-lint run)'
 
 # --- Service-specific Commands ---
 
