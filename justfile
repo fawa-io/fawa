@@ -1,64 +1,66 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
-
 set positional-arguments := false
 
-fawa-server-bin := "fawa-server"
+# --- Workspace-aware Commands ---
 
-fawa-server-dir := "."
-
-# just command list
-default:
-    @just --list
-
-# build fawa server
-build:
-    @echo "Building fawa server..."
-    go build -v -o {{fawa-server-bin}} {{fawa-server-dir}}
-
-# run fawa server
-run:
-    @echo "Running fawa server..."
-    go run {{fawa-server-dir}}
-
-# run unit tests
+# Run unit tests for all services in the workspace
 test:
-    @echo "Running unit tests..."
-    go test -v -cover ./...
+    @echo "Running unit tests for all modules..."
+    @awk '/^\t\./ { sub("^[ \t]+", ""); print }' go.work | xargs -I {} bash -c 'echo "--- Testing module: {} ---"; (cd {} && go test -v -cover ./...)'
 
-# go mod tidy
+# Tidy dependencies for all modules in the workspace
 tidy:
-    @echo "Tidying go modules..."
-    go mod tidy
+    @echo "Tidying go modules in workspace..."
+    @awk '/^\t\./ { sub("^[ \t]+", ""); print }' go.work | xargs -I {} bash -c 'echo "Tidying {}..."; cd {} && go mod tidy'
 
-# go fmt ./...
+# Format all go files in the workspace
 fmt:
     @echo "Formatting go files..."
     go fmt ./...
 
-# run golangci-lint
+# Lint all code in the workspace
 lint:
     @echo "Linting code..."
     # check if golangci-lint command exists.
     @if ! command -v golangci-lint &> /dev/null; then \
-        go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6; \
+        go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest; \
     fi
-    golangci-lint run ./...
+    @echo "Linting all modules in workspace..."
+    @awk '/^\t\./ { sub("^[ \t]+", ""); print }' go.work | xargs -I {} bash -c 'echo "Linting module: {}..."; (cd {} && golangci-lint run)'
 
-# generate protobuf files
+# --- Service-specific Commands ---
+
+# Build a specific service. Usage: just build <service-name>
+# Example: just build fileservice
+build service:
+    @echo "Building service: {{service}}..."
+    go build -v -o bin/{{service}} ./services/{{service}}
+
+# Run a specific service. Usage: just run <service-name>
+# Example: just run fileservice
+run service:
+    @echo "Running service: {{service}}..."
+    go run ./services/{{service}}
+
+# --- Other Commands ---
+
+# Generate protobuf files
 generate:
     @echo "Generating protobuf files..."
     rm -rf gen/
     buf generate
 
-# clean fawa server
+# Clean all build artifacts
 clean:
     @echo "Cleaning up..."
-    @if [ -f {{fawa-server-bin}} ]; then \
-        rm {{fawa-server-bin}}; \
-    fi
+    rm -rf bin/
     rm -rf gen/
 
-# check license header
+# Check license header
 check:
     @echo "Checking license header..."
     license-eye -c .licenserc.yaml header check
+
+# List all available commands
+default:
+    @just --list
