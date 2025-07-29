@@ -1,4 +1,4 @@
-module github.com/fawa-io/fawa/services/fileservice
+module github.com/fawa-io/fawa/fileservice
 
 go 1.24.5
 
