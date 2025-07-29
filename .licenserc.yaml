@@ -33,6 +33,7 @@ header:
 
 
   paths-ignore:
+    - '**/*.pem'
     - '**/*.md'
     - '**/.gitignore'
     - '.git/'
@@ -40,9 +41,10 @@ header:
     - 'go.mod'
     - 'go.sum'
     - 'justfile'
-    - '*.pem'
     - 'LICENSE'
     - '.golangci.yaml'
+    - 'go.work'
+    - 'go.work.sum'
 
   comment: on-failure
 
