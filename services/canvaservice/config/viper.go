@@ -118,8 +118,8 @@ func LoadAndWatch() error {
 	mu.Unlock()
 
 	viper.SetDefault("addr", "127.0.0.1:8081")
-	viper.SetDefault("./cert/certFile", "cert.pem")
-	viper.SetDefault("./cert/keyFile", "key.pem")
+	viper.SetDefault("certFile", "./cert/cert.pem")
+	viper.SetDefault("keyFile", "./cert/key.pem")
 	viper.SetDefault("logLevel", "info")
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
