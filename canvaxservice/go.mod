@@ -1,4 +1,4 @@
-module github.com/fawa-io/fawa/services/canvaxservice
+module github.com/fawa-io/fawa/canvaxservice
 
 go 1.24.5
 

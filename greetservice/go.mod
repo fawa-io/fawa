@@ -1,4 +1,4 @@
-module github.com/fawa-io/fawa/services/greetservice
+module github.com/fawa-io/fawa/greetservice
 
 go 1.24.5
 
