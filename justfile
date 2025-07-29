@@ -6,7 +6,7 @@ set positional-arguments := false
 # Run unit tests for all services in the workspace
 test:
     @echo "Running unit tests for all modules..."
-    go test -v -cover ./...
+    @awk '/^\t\./ { sub("^[ \t]+", ""); print }' go.work | xargs -I {} bash -c 'echo "--- Testing module: {} ---"; (cd {} && go test -v -cover ./...)'
 
 # Tidy dependencies for all modules in the workspace
 tidy:
