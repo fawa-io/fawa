@@ -1,0 +1,65 @@
+# --- canvaservice/justfile ---
+# This file is placed in the services/canvaservice/ directory.
+
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+set positional-arguments := false
+
+# Variables specific to this service
+service_bin := "canvaservice"
+service_dir := "."
+
+# Default command: list all available recipes
+default:
+    @just --list
+
+# Build the canvaservice binary
+build:
+    @echo "Building {{service_bin}}..."
+    go build -v -o {{service_bin}} {{service_dir}}
+
+# Run the canvaservice
+run:
+    @echo "Running {{service_bin}}..."
+    go run {{service_dir}}
+
+# Run unit tests for canvaservice
+test:
+    @echo "Running unit tests for {{service_bin}}..."
+    go test -v -cover ./...
+
+# Tidy go modules for canvaservice
+tidy:
+    @echo "Tidying go modules for {{service_bin}}..."
+    go mod tidy
+
+# Format go files within fcanvaservice
+fmt:
+    @echo "Formatting go files for {{service_bin}}..."
+    go fmt ./...
+
+# Lint code within canvaservice
+lint:
+    @echo "Linting code for {{service_bin}}..."
+    # Check if golangci-lint is installed
+    @if ! command -v golangci-lint &> /dev/null; then \
+        echo "golangci-lint not found, installing..."; \
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+    fi
+    golangci-lint run ./...
+
+# Generate protobuf files for canvaservice
+# This is the key change for the microservice architecture.
+generate:
+    @echo "Generating protobuf files for {{service_bin}}..."
+    # 1. Remove the old generated code directory
+    rm -rf gen/
+    # 2. Run buf generate targeting the service's own proto directory
+    buf generate ./proto
+
+# Clean up generated files and the binary for canvaservice
+clean:
+    @echo "Cleaning up {{service_bin}}..."
+    @if [ -f {{service_bin}} ]; then \
+        rm {{service_bin}}; \
+    fi
+    rm -rf gen/

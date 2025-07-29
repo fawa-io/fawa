@@ -1,0 +1,8 @@
+go 1.24.5
+
+use (
+	./services/canvaservice
+	./services/greetservice
+	./services/fileservice
+	./services/canvaxservice
+)

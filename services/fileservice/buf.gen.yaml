@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version: v1
-directories:
-  - services/canvaxservice/proto
-  - services/fileservice/proto
-  - services/greetservice/proto
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.34.1
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go:v1.16.2
+    out: gen
+    opt: paths=source_relative

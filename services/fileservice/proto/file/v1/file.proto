@@ -1,0 +1,74 @@
+// Copyright 2025 The fawa Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package file.v1;
+
+option go_package = "github.com/fawa-io/fawa/services/fileservice/gen/file/v1;filev1";
+
+service FileService {
+  rpc SendFile(stream SendFileRequest) returns (SendFileResponse) {
+  }
+
+  rpc ReceiveFile(ReceiveFileRequest) returns (stream ReceiveFileResponse) {
+  }
+
+  rpc GetDownloadURL(GetDownloadURLRequest) returns (GetDownloadURLResponse){
+
+  }
+
+}
+
+message SendFileRequest {
+  oneof payload {
+    FileInfo info= 1;
+    bytes chunk_data = 2;
+  }
+}
+
+message SendFileResponse {
+  bool success = 1;
+  string message = 2;
+  string randomkey =3;
+}
+
+message ReceiveFileRequest {
+  string randomkey = 1;
+}
+
+message ReceiveFileResponse {
+  string filename =1;
+  oneof payload {
+    int64 file_size = 2;
+    bytes chunk_data = 3;
+  }
+}
+
+message GetDownloadURLRequest{
+  string randomkey = 1;
+}
+
+message GetDownloadURLResponse{
+  string url = 1;
+  string filename = 2;
+}
+
+message FileInfo{
+  string name = 1;
+  int64 size = 2;
+}
+
+
+

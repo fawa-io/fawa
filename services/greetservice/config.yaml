@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-version: v1
-directories:
-  - services/canvaxservice/proto
-  - services/fileservice/proto
-  - services/greetservice/proto
+addr: "localhost:8080"
+certFile: "./cert/cert.pem"
+keyFile: "./cert/key.pem"
+logLevel: "info"
