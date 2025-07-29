@@ -11,10 +11,7 @@ test:
 # Tidy dependencies for all modules in the workspace
 tidy:
     @echo "Tidying go modules in workspace..."
-    @for module in $$(awk '/^\t\./ {print $$1}' go.work); do \
-        echo "Tidying $$module..."; \
-        (cd $$module && go mod tidy); \
-    done
+    @awk '/^\t\./ {print $$1}' go.work | xargs -I {} bash -c 'echo "Tidying {}..."; cd {} && go mod tidy'
 
 # Format all go files in the workspace
 fmt:
