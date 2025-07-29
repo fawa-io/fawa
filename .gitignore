@@ -1,6 +1,5 @@
 .idea/
 
+**/*.pem
 
-**.pem
-
-**.cert/
+**/cert/
