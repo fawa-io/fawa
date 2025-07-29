@@ -100,6 +100,7 @@ func main() {
 
 	// Create WebTransport server
 	wtServer := &webtransport.Server{
+		//nolint:govet
 		H3: *h3Server, // H3: *h3Server,
 		CheckOrigin: func(r *http.Request) bool {
 			return true // Allow all origins for development
