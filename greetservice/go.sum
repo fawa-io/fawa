@@ -4,6 +4,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fawa-io/fawa v0.2.0 h1:5A9V0mJNxjg8M4sn0WaMjr5t2Ey/rZ2rHjKMYy4GJPM=
 github.com/fawa-io/fawa v0.2.0/go.mod h1:fVQI7UQx766fcl3a5rJPXL7nWG1I7kkV3Nral3JUe24=
+github.com/fawa-io/fawa/services/greetservice v0.0.0-20250729132406-7817c224341a h1:9kwcyrR6Y7fk5h5LVXoSxqxlAPKKVx49kgQVRmbKc1Y=
+github.com/fawa-io/fawa/services/greetservice v0.0.0-20250729132406-7817c224341a/go.mod h1:97/FbXebmejdHUy8cHzUCxSywJJE9CfM3NpCCqXruco=
 github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75 h1:NzYwEjecvcX+4ObLbjVZhThN2BVwyQio2+WOOUBJkuI=
 github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75/go.mod h1:DY7GeFRlms95l/ZWWydrXsm6aw2FsFO/N2Jfy0uw8vM=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

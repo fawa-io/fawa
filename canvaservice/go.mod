@@ -3,6 +3,7 @@ module github.com/fawa-io/fawa/canvaservice
 go 1.24.5
 
 require (
+	github.com/fawa-io/fawa/services/canvaservice v0.0.0-20250729132406-7817c224341a
 	github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gorilla/websocket v1.5.3

@@ -5,6 +5,7 @@ go 1.24.5
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/fawa-io/fawa v0.2.0
+	github.com/fawa-io/fawa/services/fileservice v0.0.0-20250729132406-7817c224341a
 	github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-redis/redismock/v9 v9.2.0
