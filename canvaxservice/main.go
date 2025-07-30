@@ -26,9 +26,9 @@ import (
 	"github.com/fawa-io/fwpkg/cors"
 	"github.com/fawa-io/fwpkg/fwlog"
 
-	"github.com/fawa-io/fawa/services/canvaxservice/config"
-	"github.com/fawa-io/fawa/services/canvaxservice/gen/canva/v1/canvav1connect"
-	"github.com/fawa-io/fawa/services/canvaxservice/handler"
+	"github.com/fawa-io/fawa/canvaxservice/config"
+	"github.com/fawa-io/fawa/canvaxservice/gen/canva/v1/canvav1connect"
+	"github.com/fawa-io/fawa/canvaxservice/handler"
 )
 
 func main() {

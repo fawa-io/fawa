@@ -62,8 +62,8 @@ import (
 	"github.com/quic-go/quic-go/http3"
 	"github.com/quic-go/webtransport-go"
 
-	"github.com/fawa-io/fawa/services/canvaservice/config"
-	"github.com/fawa-io/fawa/services/canvaservice/handler"
+	"github.com/fawa-io/fawa/canvaservice/config"
+	"github.com/fawa-io/fawa/canvaservice/handler"
 )
 
 func main() {

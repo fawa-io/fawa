@@ -26,9 +26,9 @@ import (
 	"github.com/fawa-io/fwpkg/cors"
 	"github.com/fawa-io/fwpkg/fwlog"
 
-	"github.com/fawa-io/fawa/services/greetservice/config"
-	"github.com/fawa-io/fawa/services/greetservice/gen/greet/v1/greetv1connect"
-	greet "github.com/fawa-io/fawa/services/greetservice/handler"
+	"github.com/fawa-io/fawa/greetservice/config"
+	"github.com/fawa-io/fawa/greetservice/gen/greet/v1/greetv1connect"
+	greet "github.com/fawa-io/fawa/greetservice/handler"
 )
 
 func main() {
