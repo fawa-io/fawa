@@ -12,30 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# build
-FROM golang:1.24-alpine AS builder
-
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
-RUN CGO_ENABLED=0 go build -o /server -ldflags "-s -w" .
-
-# run
-FROM alpine:latest
-
-RUN apk add --no-cache ca-certificates
-
-RUN addgroup -S agroup && adduser -S auser -G  agroup
-USER auser
-
-WORKDIR /app
-
-COPY --from=builder --chown=auser:agroup /server .
-
-EXPOSE 443
-
-CMD ["./server"]
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: canvaservice-cert
+  namespace: fawa
+spec:
+  secretName: canvaservice-tls
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - fawa
+  commonName: canvaservice.fawa.svc.cluster.local
+  dnsNames:
+    - canvaservice
+    - canvaservice.fawa
+    - canvaservice.fawa.svc
+    - canvaservice.fawa.svc.cluster.local
+  issuerRef:
+    name: fawa-ca-issuer
+    kind: ClusterIssuer

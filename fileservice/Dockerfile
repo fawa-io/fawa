@@ -29,13 +29,14 @@ FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
 
-RUN addgroup -S agroup && adduser -S auser -G  agroup
+RUN addgroup -S agroup && adduser -S auser -G agroup
 USER auser
 
 WORKDIR /app
 
 COPY --from=builder --chown=auser:agroup /server .
 
-EXPOSE 8081
+
+EXPOSE 443
 
 CMD ["./server"]

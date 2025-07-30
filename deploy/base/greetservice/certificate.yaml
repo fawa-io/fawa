@@ -12,7 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addr: ":8080"
-certFile: "./cert/cert.pem"
-keyFile: "./cert/key.pem"
-logLevel: "info"
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: greetservice-cert
+  namespace: fawa
+spec:
+  secretName: greetservice-tls
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - fawa
+  commonName: greetservice.fawa.svc.cluster.local
+  dnsNames:
+    - greetservice
+    - greetservice.fawa
+    - greetservice.fawa.svc
+    - greetservice.fawa.svc.cluster.local
+  issuerRef:
+    name: fawa-ca-issuer
+    kind: ClusterIssuer
