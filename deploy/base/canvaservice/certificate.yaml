@@ -16,6 +16,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: canvaservice-cert
+  namespace: fawa
 spec:
   secretName: canvaservice-tls
   duration: 2160h
@@ -23,12 +24,12 @@ spec:
   subject:
     organizations:
       - fawa
-  commonName: canvaservice.default.svc.cluster.local
+  commonName: canvaservice.fawa.svc.cluster.local
   dnsNames:
     - canvaservice
-    - canvaservice.default
-    - canvaservice.default.svc
-    - canvaservice.default.svc.cluster.local
+    - canvaservice.fawa
+    - canvaservice.fawa.svc
+    - canvaservice.fawa.svc.cluster.local
   issuerRef:
     name: fawa-ca-issuer
     kind: ClusterIssuer
