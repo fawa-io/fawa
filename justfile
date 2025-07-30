@@ -42,13 +42,14 @@ run service:
     @echo "Running service: {{service}}..."
     go run ./services/{{service}}
 
-# --- Other Commands ---
+test-service service:
+    @echo "Testing service: {{service}}..."
+    @(cd ./services/{{service}} && just test)
 
-# Generate protobuf files
-generate:
-    @echo "Generating protobuf files..."
-    rm -rf gen/
-    buf generate
+# Generate protos for a specific service. Usage: just generate-service <service-name>
+generate-service service:
+    @echo "Generating protos for service: {{service}}..."
+    @(cd ./services/{{service}} && just generate)
 
 # Clean all build artifacts
 clean:
