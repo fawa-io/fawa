@@ -8,7 +8,7 @@ Fawa is a high-performance file transfer service built with Go. It leverages gRP
 *   **File Download:** Stream files from the server to a client.
 *   **Built with Go:** Ensures high performance and concurrency.
 *   **gRPC & Connect:** Provides a modern, robust, and efficient communication layer.
-
+*   **canva :** BidiStream  to draw with others
 
 ## Development Commands
 
@@ -27,3 +27,4 @@ This project uses [`just`](https://github.com/casey/just) to manage development 
   - `fmt` - Formats the code
   - `clean` - Cleans up build artifacts
   -  `generate` - Generate gen files
+  
