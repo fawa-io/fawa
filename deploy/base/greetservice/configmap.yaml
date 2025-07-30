@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addr: ":8080"
-certFile: "./cert/cert.pem"
-keyFile: "./cert/key.pem"
-logLevel: "info"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: greetservice-config
+  namespace: fawa
+data:
+  config.yaml: |
+    addr: ":443"
+    certFile: "/cert/tls.crt"
+    keyFile: "/cert/tls.key"
+    logLevel: "info"

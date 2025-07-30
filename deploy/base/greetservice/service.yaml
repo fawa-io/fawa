@@ -12,7 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addr: ":8083"
-certFile: "./cert/cert.pem"
-keyFile: "./cert/key.pem"
-logLevel: "info"
+apiVersion: v1
+kind: Service
+metadata:
+  name: greetservice
+  namespace: fawa
+spec:
+  selector:
+    app: greetservice
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+  type: ClusterIP

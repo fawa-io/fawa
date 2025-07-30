@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"time"
 
 	"github.com/fawa-io/fawa/pkg/fwlog"
@@ -27,11 +28,15 @@ import (
 var dragon *DragonflyStorage
 
 func init() {
+	addr := os.Getenv("DRAGONFLY_ADDR")
+	if addr == "" {
+		addr = "localhost:6379"
+	}
+
 	dragon = &DragonflyStorage{
 		client: redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "",
-			DB:       0,
+			Addr: addr,
+			DB:   0,
 		}),
 	}
 }

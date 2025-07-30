@@ -12,30 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# build
-FROM golang:1.24-alpine AS builder
-
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
-RUN CGO_ENABLED=0 go build -o /server -ldflags "-s -w" .
-
-# run
-FROM alpine:latest
-
-RUN apk add --no-cache ca-certificates
-
-RUN addgroup -S agroup && adduser -S auser -G  agroup
-USER auser
-
-WORKDIR /app
-
-COPY --from=builder --chown=auser:agroup /server .
-
-EXPOSE 443
-
-CMD ["./server"]
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: your-email@example.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
