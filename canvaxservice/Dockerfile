@@ -22,19 +22,19 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLE=0 go build -o /server -ldflags "-s -w"
+RUN CGO_ENABLED=0 go build -o /server -ldflags "-s -w" .
 
 # run
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates
 
+RUN addgroup -S agroup && adduser -S auser -G  agroup
+USE auser \
+
 WORKDIR /app
 
-COPY --from=builder /server .
-
-COPY ./config.yaml .
-COPY ./cert ./cert/
+COPY --from=builder --chown=auser:agroup /server .
 
 EXPOSE 8082
 
