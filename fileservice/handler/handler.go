@@ -31,8 +31,8 @@ import (
 	"github.com/fawa-io/fwpkg/fwlog"
 	"github.com/fawa-io/fwpkg/util"
 
-	filev1 "github.com/fawa-io/fawa/services/fileservice/gen/file/v1"
-	"github.com/fawa-io/fawa/services/fileservice/storage"
+	filev1 "github.com/fawa-io/fawa/fileservice/gen/file/v1"
+	"github.com/fawa-io/fawa/fileservice/storage"
 )
 
 // FileServiceHandler implements the gRPC file service.

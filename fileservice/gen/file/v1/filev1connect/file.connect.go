@@ -22,7 +22,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/fawa-io/fawa/services/fileservice/gen/file/v1"
+	v1 "github.com/fawa-io/fawa/fileservice/gen/file/v1"
 	http "net/http"
 	strings "strings"
 )

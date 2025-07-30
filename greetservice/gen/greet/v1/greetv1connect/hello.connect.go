@@ -22,7 +22,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/fawa-io/fawa/services/greetservice/gen/greet/v1"
+	v1 "github.com/fawa-io/fawa/greetservice/gen/greet/v1"
 	http "net/http"
 	strings "strings"
 )

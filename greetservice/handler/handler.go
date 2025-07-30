@@ -24,7 +24,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/fawa-io/fwpkg/fwlog"
 
-	greetv1 "github.com/fawa-io/fawa/services/greetservice/gen/greet/v1"
+	greetv1 "github.com/fawa-io/fawa/greetservice/gen/greet/v1"
 )
 
 type GreetServiceHandler struct{}

@@ -14,6 +14,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/fawa-io/fawa v0.2.0 h1:5A9V0mJNxjg8M4sn0WaMjr5t2Ey/rZ2rHjKMYy4GJPM=
 github.com/fawa-io/fawa v0.2.0/go.mod h1:fVQI7UQx766fcl3a5rJPXL7nWG1I7kkV3Nral3JUe24=
+github.com/fawa-io/fawa/services/fileservice v0.0.0-20250729132406-7817c224341a h1:me9fGVxFGJIarRgPY3ZZJry79cncwSkDzUci6naNuWA=
+github.com/fawa-io/fawa/services/fileservice v0.0.0-20250729132406-7817c224341a/go.mod h1:A1oZbbBeWGIfZBu4rm7MNgqkUyK+HAvPs7MhEZkArD0=
 github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75 h1:NzYwEjecvcX+4ObLbjVZhThN2BVwyQio2+WOOUBJkuI=
 github.com/fawa-io/fwpkg v0.0.0-20250729040635-e49839d3bf75/go.mod h1:DY7GeFRlms95l/ZWWydrXsm6aw2FsFO/N2Jfy0uw8vM=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=

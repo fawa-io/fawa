@@ -26,9 +26,9 @@ import (
 	"github.com/fawa-io/fwpkg/cors"
 	"github.com/fawa-io/fwpkg/fwlog"
 
-	"github.com/fawa-io/fawa/services/fileservice/config"
-	"github.com/fawa-io/fawa/services/fileservice/gen/file/v1/filev1connect"
-	file "github.com/fawa-io/fawa/services/fileservice/handler"
+	"github.com/fawa-io/fawa/fileservice/config"
+	"github.com/fawa-io/fawa/fileservice/gen/file/v1/filev1connect"
+	file "github.com/fawa-io/fawa/fileservice/handler"
 )
 
 func main() {

@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package canva.v1;
 
-option go_package = "github.com/fawa-io/fawa/services/canvaxservice/gen/canva/v1;canvav1";
+option go_package = "github.com/fawa-io/fawa/canvaxservice/gen/canva/v1;canvav1";
 
 service CanvaService {
   rpc Collaborate (stream  ClientDrawRequest) returns (stream ClientDrawResponse) ;

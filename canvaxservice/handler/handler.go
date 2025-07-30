@@ -24,7 +24,7 @@ import (
 	"github.com/fawa-io/fwpkg/fwlog"
 	"github.com/fawa-io/fwpkg/util"
 
-	canvav1 "github.com/fawa-io/fawa/services/canvaxservice/gen/canva/v1"
+	canvav1 "github.com/fawa-io/fawa/canvaxservice/gen/canva/v1"
 )
 
 // CanvaServiceHandler handles canvas service requests

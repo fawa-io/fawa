@@ -12,7 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-addr: ":8083"
-certFile: "./cert/cert.pem"
-keyFile: "./cert/key.pem"
-logLevel: "info"
+# build
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 go build -o /server -ldflags "-s -w" .
+
+# run
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+
+RUN addgroup -S agroup && adduser -S auser -G  agroup
+USER auser
+
+WORKDIR /app
+
+COPY --from=builder --chown=auser:agroup /server .
+
+EXPOSE 8080
+
+CMD ["./server"]
