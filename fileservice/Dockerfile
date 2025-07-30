@@ -30,7 +30,7 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 
 RUN addgroup -S agroup && adduser -S auser -G  agroup
-USE auser \
+USER auser
 
 WORKDIR /app
 
