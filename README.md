@@ -26,3 +26,4 @@ This project uses [`just`](https://github.com/casey/just) to manage development 
   - `tidy` - Tidies Go modules
   - `fmt` - Formats the code
   - `clean` - Cleans up build artifacts
+  -  `generate` - Generate gen files
