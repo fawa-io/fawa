@@ -1,10 +1,10 @@
 # fawa
-
+[中文版 / Chinese Version](README.zh-CN.md)
 > Making high-performance distributed communication and collaboration elegant and simple.
 
 fawa is a distributed microservices cluster built with Go, focused on real-time communication and collaboration scenarios. It adopts modern cloud-native architecture to provide core functionalities such as file transfer and real-time whiteboard collaboration, offering developers a high-performance, scalable distributed communication solution.
 
-[中文版 / Chinese Version](README.zh-CN.md)
+
 
 ---
 
