@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: canvaservice
-          image: friendaa/fawa-canvas:0.2
+          image: friendaa/fawa-canva:0.2
           ports:
             - containerPort: 443
           env:
