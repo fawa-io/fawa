@@ -20,28 +20,29 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     traefik.ingress.kubernetes.io/service.scheme: http
+    traefik.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: traefik
   rules:
     - host: apifawa.marsevilspirit.com
       http:
         paths:
-          - path: /greet
-            pathType: Prefix
+          - path: /greet(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: greetservice
                 port:
                   number: 8080
-          - path: /file
-            pathType: Prefix
+          - path: /file(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: fileservice
                 port:
                   number: 8080
-          - path: /canvas
-            pathType: Prefix
+          - path: /canvas(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: canvaservice
