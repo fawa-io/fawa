@@ -26,14 +26,14 @@ spec:
     - host: apifawa.marsevilspirit.com
       http:
         paths:
-          - path: /greet.v1.GreetService
+          - path: /greet
             pathType: Prefix
             backend:
               service:
                 name: greetservice
                 port:
                   number: 8080
-          - path: /file.v1.FileService
+          - path: /file
             pathType: Prefix
             backend:
               service:
