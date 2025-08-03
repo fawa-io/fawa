@@ -33,12 +33,12 @@ spec:
         - name: fileservice
           image: friendaa/fawa-file:0.2
           ports:
-            - containerPort: 443
+            - containerPort: 8080
           env:
             - name: CONFIG_PATH
               value: "/app/config.yaml"
             - name: MINIO_ENDPOINT
-              value: "172.31.37.33:9000"  
+              value: "apifawa.marsevilspirit.com:9000"  
             - name: MINIO_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -52,20 +52,14 @@ spec:
             - name: MINIO_BUCKET_NAME
               value: "fawa"
             - name: MINIO_USE_SSL
-              value: "false"
+              value: "true"
             - name: DRAGONFLY_ADDR
               value: "172.31.37.33:6379"  
           volumeMounts:
             - name: config-volume
               mountPath: /app/config.yaml
               subPath: config.yaml
-            - name: cert-volume
-              mountPath: /cert
-              readOnly: true
       volumes:
         - name: config-volume
           configMap:
             name: fileservice-config
-        - name: cert-volume
-          secret:
-            secretName: fileservice-tls

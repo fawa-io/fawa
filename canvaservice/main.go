@@ -81,34 +81,33 @@ func main() {
 	fwlog.SetLevel(logLevel)
 	fwlog.Infof("Logger initialized with level: %s", cfg.LogLevel)
 
-	// Load TLS certificate
-	tlsConfig := &tls.Config{}
-	cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
-	if err != nil {
-		fwlog.Fatalf("Failed to load TLS certificate: %v", err)
+	// Check if certificate files exist
+	var tlsConfig *tls.Config
+	var useTLS bool
+
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
+		if _, err := os.Stat(cfg.CertFile); err == nil {
+			if _, err := os.Stat(cfg.KeyFile); err == nil {
+				// Load TLS certificate
+				tlsConfig = &tls.Config{}
+				cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
+				if err != nil {
+					fwlog.Fatalf("Failed to load TLS certificate: %v", err)
+				}
+				tlsConfig.Certificates = []tls.Certificate{cert}
+				useTLS = true
+				fwlog.Infof("TLS certificates loaded successfully")
+			}
+		}
 	}
-	tlsConfig.Certificates = []tls.Certificate{cert}
+
+	if !useTLS {
+		fwlog.Warnf("Certificate files not found, falling back to HTTP mode")
+		tlsConfig = nil
+	}
 
 	// Create canvas service handler
 	canvaHandler := handler.NewCanvasServiceHandler()
-
-	// Create HTTP/3 server for WebTransport
-	h3Server := &http3.Server{
-		Addr:      cfg.Addr,
-		TLSConfig: tlsConfig,
-	}
-
-	// Create WebTransport server
-	wtServer := &webtransport.Server{
-		//nolint:govet
-		H3: *h3Server, // H3: *h3Server,
-		CheckOrigin: func(r *http.Request) bool {
-			return true // Allow all origins for development
-		},
-	}
-
-	// Set the WebTransport server in the handler
-	canvaHandler.WTServer = wtServer
 
 	// Create HTTP server with CORS support (for WebSocket fallback)
 	mux := http.NewServeMux()
@@ -141,6 +140,9 @@ func main() {
 		Handler: cors.NewCORS().Handler(mux),
 	}
 
+	// Declare h3Server variable
+	var h3Server *http3.Server
+
 	// Setup graceful shutdown
 	go func() {
 		sigCh := make(chan os.Signal, 1)
@@ -153,9 +155,11 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		// Shutdown HTTP/3 server
-		if err := h3Server.Close(); err != nil {
-			fwlog.Errorf("HTTP/3 server shutdown error: %v", err)
+		// Shutdown HTTP/3 server if it exists
+		if useTLS && h3Server != nil {
+			if err := h3Server.Close(); err != nil {
+				fwlog.Errorf("HTTP/3 server shutdown error: %v", err)
+			}
 		}
 
 		// Shutdown HTTP server
@@ -167,20 +171,50 @@ func main() {
 	}()
 
 	fwlog.Infof("NewCanva WebTransport server starting on %v", cfg.Addr)
-	fwlog.Infof("WebTransport endpoint: https://%s/webtransport/canva", cfg.Addr)
-	fwlog.Infof("WebSocket fallback endpoint: wss://%s/ws/canva", cfg.Addr)
 
-	// Start the HTTP/3 server for WebTransport
-	go func() {
-		if err := h3Server.ListenAndServe(); err != nil && err.Error() != "server closed" {
-			fwlog.Errorf("HTTP/3 server error: %v", err)
+	if useTLS {
+		fwlog.Infof("WebTransport endpoint: https://%s/webtransport/canva", cfg.Addr)
+		fwlog.Infof("WebSocket fallback endpoint: wss://%s/ws/canva", cfg.Addr)
+
+		// Create HTTP/3 server for WebTransport
+		h3Server = &http3.Server{
+			Addr:      cfg.Addr,
+			TLSConfig: tlsConfig,
 		}
-	}()
 
-	// Start the HTTPS server for WebSocket fallback
-	if err := httpServer.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		fwlog.Fatalf("Failed to start HTTP server: %v", err)
+		// Create WebTransport server
+		wtServer := &webtransport.Server{
+			//nolint:govet
+			H3: *h3Server, // H3: *h3Server,
+			CheckOrigin: func(r *http.Request) bool {
+				return true // Allow all origins for development
+			},
+		}
+
+		// Set the WebTransport server in the handler
+		canvaHandler.WTServer = wtServer
+
+		// Start the HTTP/3 server for WebTransport
+		go func() {
+			if err := h3Server.ListenAndServe(); err != nil && err.Error() != "server closed" {
+				fwlog.Errorf("HTTP/3 server error: %v", err)
+			}
+		}()
+
+		// Start the HTTPS server for WebSocket fallback
+		if err := httpServer.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			fwlog.Fatalf("Failed to start HTTPS server: %v", err)
+		}
+	} else {
+		fwlog.Infof("WebSocket fallback endpoint: ws://%s/ws/canva", cfg.Addr)
+		fwlog.Infof("Starting HTTP server")
+
+		// Start the HTTP server
+		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			fwlog.Fatalf("Failed to start HTTP server: %v", err)
+		}
 	}
+
 	go func() {
 		log.Println(http.ListenAndServe("localhost:8081", nil))
 	}()
