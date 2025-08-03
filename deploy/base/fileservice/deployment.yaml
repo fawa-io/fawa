@@ -33,7 +33,7 @@ spec:
         - name: fileservice
           image: friendaa/fawa-file:0.2
           ports:
-            - containerPort: 443
+            - containerPort: 8080
           env:
             - name: CONFIG_PATH
               value: "/app/config.yaml"
@@ -59,13 +59,7 @@ spec:
             - name: config-volume
               mountPath: /app/config.yaml
               subPath: config.yaml
-            - name: cert-volume
-              mountPath: /cert
-              readOnly: true
       volumes:
         - name: config-volume
           configMap:
             name: fileservice-config
-        - name: cert-volume
-          secret:
-            secretName: fileservice-tls

@@ -33,7 +33,7 @@ spec:
         - name: greetservice
           image: friendaa/fawa-greet:0.2
           ports:
-            - containerPort: 443
+            - containerPort: 8080
           env:
             - name: CONFIG_PATH
               value: "/app/config.yaml"
@@ -41,13 +41,7 @@ spec:
             - name: config-volume
               mountPath: /app/config.yaml
               subPath: config.yaml
-            - name: cert-volume
-              mountPath: /cert
-              readOnly: true
       volumes:
         - name: config-volume
           configMap:
             name: greetservice-config
-        - name: cert-volume
-          secret:
-            secretName: greetservice-tls
