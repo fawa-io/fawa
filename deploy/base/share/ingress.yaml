@@ -20,29 +20,33 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     traefik.ingress.kubernetes.io/service.scheme: http
-    traefik.ingress.kubernetes.io/rewrite-target: /$2
+
+    traefik.ingress.kubernetes.io/cors-allow-origin: "*"
+    traefik.ingress.kubernetes.io/cors-allow-methods: "GET,POST,PUT,DELETE,OPTIONS"
+    traefik.ingress.kubernetes.io/cors-allow-headers: "*"
+    traefik.ingress.kubernetes.io/cors-allow-credentials: "true"
 spec:
   ingressClassName: traefik
   rules:
     - host: apifawa.marsevilspirit.com
       http:
         paths:
-          - path: /greet(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /greet.v1.GreetService
+            pathType: Prefix
             backend:
               service:
                 name: greetservice
                 port:
                   number: 8080
-          - path: /file(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /file.v1.FileService
+            pathType: Prefix
             backend:
               service:
                 name: fileservice
                 port:
                   number: 8080
-          - path: /canvas(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /canvas
+            pathType: Prefix
             backend:
               service:
                 name: canvaservice
