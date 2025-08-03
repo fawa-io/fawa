@@ -20,7 +20,6 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     traefik.ingress.kubernetes.io/service.scheme: https
-    traefik.ingress.kubernetes.io/serverstransport.insecureskipverify: "true"
 spec:
   ingressClassName: traefik
   rules:
