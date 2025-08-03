@@ -30,8 +30,6 @@ spec:
     - greetservice.fawa
     - greetservice.fawa.svc
     - greetservice.fawa.svc.cluster.local
-  ipAddresses:
-    - "10.43.75.82"
   issuerRef:
     name: fawa-ca-issuer
     kind: ClusterIssuer

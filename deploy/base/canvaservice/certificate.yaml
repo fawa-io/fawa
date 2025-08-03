@@ -30,8 +30,6 @@ spec:
     - canvaservice.fawa
     - canvaservice.fawa.svc
     - canvaservice.fawa.svc.cluster.local
-  ipAddresses:
-    - "10.43.10.213"
   issuerRef:
     name: fawa-ca-issuer
     kind: ClusterIssuer
