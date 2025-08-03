@@ -30,6 +30,8 @@ spec:
     - fileservice.fawa
     - fileservice.fawa.svc
     - fileservice.fawa.svc.cluster.local
+  ipAddresses:
+    - "10.43.109.56"
   issuerRef:
     name: fawa-ca-issuer
     kind: ClusterIssuer
