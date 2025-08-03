@@ -17,8 +17,9 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"sync"
+
+	"github.com/fsnotify/fsnotify"
 
 	"github.com/fawa-io/fawa/pkg/fwlog"
 	"github.com/spf13/pflag"
@@ -88,8 +89,8 @@ func LoadAndWatch() error {
 
 	viper.SetDefault("addr", "127.0.0.1:8080")
 	viper.SetDefault("uploadDir", "./upload")
-	viper.SetDefault("certFile", "cert.pem")
-	viper.SetDefault("keyFile", "key.pem")
+	viper.SetDefault("certFile", "")
+	viper.SetDefault("keyFile", "")
 	viper.SetDefault("logLevel", "info")
 
 	viper.OnConfigChange(func(e fsnotify.Event) {
