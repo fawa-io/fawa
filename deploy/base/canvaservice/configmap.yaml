@@ -19,7 +19,7 @@ metadata:
   namespace: fawa
 data:
   config.yaml: |
-    addr: ":443"
-    certFile: "/cert/tls.crt"
-    keyFile: "/cert/tls.key"
+    addr: ":8080"
+    certFile: ""
+    keyFile: ""
     logLevel: "info"

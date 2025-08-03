@@ -82,8 +82,25 @@ func main() {
 
 	fwlog.Infof("Server starting on %v", cfg.Addr)
 
-	// Start the HTTPS server.
-	if err := fileSrv.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		fwlog.Fatalf("Failed to start server: %v", err)
+	// Check if certificate files exist
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
+		// Check if certificate files actually exist
+		if _, err := os.Stat(cfg.CertFile); err == nil {
+			if _, err := os.Stat(cfg.KeyFile); err == nil {
+				// Start the HTTPS server.
+				fwlog.Infof("Starting HTTPS server with certificates: %s, %s", cfg.CertFile, cfg.KeyFile)
+				if err := fileSrv.ListenAndServeTLS(cfg.CertFile, cfg.KeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+					fwlog.Fatalf("Failed to start HTTPS server: %v", err)
+				}
+				return
+			}
+		}
+		fwlog.Warnf("Certificate files not found, falling back to HTTP mode")
+	}
+
+	// Start the HTTP server.
+	fwlog.Infof("Starting HTTP server")
+	if err := fileSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		fwlog.Fatalf("Failed to start HTTP server: %v", err)
 	}
 }
