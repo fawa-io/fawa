@@ -37,6 +37,6 @@ WORKDIR /app
 COPY --from=builder --chown=auser:agroup /server .
 
 
-EXPOSE 443
+EXPOSE 8080
 
 CMD ["./server"]
