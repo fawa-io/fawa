@@ -16,6 +16,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: canvaservice-config
+  namespace: fawa
 data:
   config.yaml: |
     addr: ":443"
