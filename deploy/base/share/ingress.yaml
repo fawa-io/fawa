@@ -23,7 +23,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: api.fawa.marevilspirit.com
+    - host: apifawa.marsevilspirit.com
       http:
         paths:
           - path: /greet
@@ -49,5 +49,5 @@ spec:
                   number: 443
   tls:
     - hosts:
-        - api.fawa.marevilspirit.com
+        - apifawa.marsevilspirit.com
       secretName: fawa-api-tls
