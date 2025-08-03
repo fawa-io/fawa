@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: canvaservice-cert
-  namespace: fawa
-spec:
-  secretName: canvaservice-tls
-  duration: 2160h
-  renewBefore: 360h
-  subject:
-    organizations:
-      - fawa
-  commonName: canvaservice.fawa.svc.cluster.local
-  dnsNames:
-    - canvaservice
-    - canvaservice.fawa
-    - canvaservice.fawa.svc
-    - canvaservice.fawa.svc.cluster.local
-  issuerRef:
-    name: fawa-ca-issuer
-    kind: ClusterIssuer
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  name: canvaservice-cert
+#  namespace: fawa
+#spec:
+#  secretName: canvaservice-tls
+#  duration: 2160h
+#  renewBefore: 360h
+#  subject:
+#    organizations:
+#      - fawa
+#  commonName: canvaservice.fawa.svc.cluster.local
+#  dnsNames:
+#    - canvaservice
+#    - canvaservice.fawa
+#    - canvaservice.fawa.svc
+#    - canvaservice.fawa.svc.cluster.local
+#  issuerRef:
+#    name: fawa-ca-issuer
+#    kind: ClusterIssuer

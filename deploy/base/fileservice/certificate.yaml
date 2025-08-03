@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: fileservice-cert
-  namespace: fawa
-spec:
-  secretName: fileservice-tls
-  duration: 2160h
-  renewBefore: 360h
-  subject:
-    organizations:
-      - fawa
-  commonName: fileservice.fawa.svc.cluster.local
-  dnsNames:
-    - fileservice
-    - fileservice.fawa
-    - fileservice.fawa.svc
-    - fileservice.fawa.svc.cluster.local
-  issuerRef:
-    name: fawa-ca-issuer
-    kind: ClusterIssuer
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  name: fileservice-cert
+#  namespace: fawa
+#spec:
+#  secretName: fileservice-tls
+#  duration: 2160h
+#  renewBefore: 360h
+#  subject:
+#    organizations:
+#      - fawa
+#  commonName: fileservice.fawa.svc.cluster.local
+#  dnsNames:
+#    - fileservice
+#    - fileservice.fawa
+#    - fileservice.fawa.svc
+#    - fileservice.fawa.svc.cluster.local
+#  issuerRef:
+#    name: fawa-ca-issuer
+#    kind: ClusterIssuer
