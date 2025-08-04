@@ -31,8 +31,9 @@ import (
 
 // minioFileStore holds the client and configuration for MinIO file operations.
 type minioFileStore struct {
-	client     *minio.Client
-	bucketName string
+	client         *minio.Client
+	bucketName     string
+	publicEndpoint string
 }
 
 var fileStore *minioFileStore
@@ -64,9 +65,15 @@ func init() {
 		log.Fatalf("Failed to initialize MinIO client: %v", err)
 	}
 
+	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	if publicEndpoint == "" {
+		publicEndpoint = endpoint
+	}
+
 	fileStore = &minioFileStore{
-		client:     client,
-		bucketName: bucketName,
+		client:         client,
+		bucketName:     bucketName,
+		publicEndpoint: publicEndpoint,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -105,7 +112,29 @@ func GetPresignedURL(ctx context.Context, objectName string, expires time.Durati
 		return nil, errors.New("MinIO client is not initialized")
 	}
 
-	return fileStore.client.PresignedGetObject(ctx, fileStore.bucketName, objectName, expires, nil)
+	// Generate presigned URL with custom endpoint
+	reqParams := make(url.Values)
+	presignedURL, err := fileStore.client.PresignedGetObject(ctx, fileStore.bucketName, objectName, expires, reqParams)
+	if err != nil {
+		return nil, err
+	}
+
+	// Replace the host with public endpoint
+	if fileStore.publicEndpoint != "" {
+		publicURL, err := url.Parse(fileStore.publicEndpoint)
+		if err == nil {
+			presignedURL.Scheme = publicURL.Scheme
+			presignedURL.Host = publicURL.Host
+			// 确保路径正确，MinIO 的路径格式是 /bucket/object
+			if presignedURL.Path == "" {
+				presignedURL.Path = "/"
+			}
+		} else {
+			fwlog.Warnf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
+		}
+	}
+
+	return presignedURL, nil
 }
 
 // ListObjects lists all objects in the bucket for debugging purposes.
