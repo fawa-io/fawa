@@ -38,7 +38,7 @@ spec:
             - name: CONFIG_PATH
               value: "/app/config.yaml"
             - name: MINIO_ENDPOINT
-              value: "172.31.37.33:9000"
+              value: "minio.fawa.svc.cluster.local:9000"
             - name: MINIO_PUBLIC_ENDPOINT
               value: "https://apifawa.marsevilspirit.com/minio"  
             - name: MINIO_ACCESS_KEY_ID

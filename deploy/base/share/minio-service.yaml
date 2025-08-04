@@ -18,9 +18,20 @@ metadata:
   name: minio
   namespace: fawa
 spec:
-  type: ExternalName
-  externalName: 172.31.37.33
   ports:
-    - protocol: TCP
+    - name: http-minio
+      protocol: TCP
       port: 9000
-      targetPort: 9000 
+      targetPort: 9000
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: minio
+  namespace: fawa
+subsets:
+  - addresses:
+      - ip: 172.31.37.33
+    ports:
+      - name: http-minio
+        port: 9000 

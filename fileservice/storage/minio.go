@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"time"
 
 	"github.com/fawa-io/fawa/pkg/fwlog"
@@ -122,15 +123,18 @@ func GetPresignedURL(ctx context.Context, objectName string, expires time.Durati
 	// Replace the host with public endpoint
 	if fileStore.publicEndpoint != "" {
 		publicURL, err := url.Parse(fileStore.publicEndpoint)
-		if err == nil {
+		if err != nil {
+			fwlog.Warnf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
+		} else {
 			presignedURL.Scheme = publicURL.Scheme
 			presignedURL.Host = publicURL.Host
-			// 确保路径正确，MinIO 的路径格式是 /bucket/object
-			if presignedURL.Path == "" {
-				presignedURL.Path = "/"
+			// The presigned URL path from minio-go is /<bucket-name>/<object-name>.
+			// We need to prepend the public endpoint path to match the ingress route.
+			if publicURL.Path != "" {
+				// Original path: /bucket-name/object-name
+				// We want: /minio/bucket-name/object-name
+				presignedURL.Path = path.Join(publicURL.Path, presignedURL.Path)
 			}
-		} else {
-			fwlog.Warnf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
 		}
 	}
 
