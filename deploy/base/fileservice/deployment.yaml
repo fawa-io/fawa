@@ -38,7 +38,7 @@ spec:
             - name: CONFIG_PATH
               value: "/app/config.yaml"
             - name: MINIO_ENDPOINT
-              value: "apifawa.marsevilspirit.com:9000"  
+              value: "apifawa.marsevilspirit.com:9000"
             - name: MINIO_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
@@ -52,7 +52,7 @@ spec:
             - name: MINIO_BUCKET_NAME
               value: "fawa"
             - name: MINIO_USE_SSL
-              value: "true"
+              value: "false"
             - name: DRAGONFLY_ADDR
               value: "172.31.37.33:6379"  
           volumeMounts:

@@ -52,6 +52,13 @@ spec:
                 name: canvaservice
                 port:
                   number: 8080
+          - path: /fawa
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: 9000
   tls:
     - hosts:
         - apifawa.marsevilspirit.com
