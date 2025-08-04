@@ -31,9 +31,8 @@ import (
 
 // minioFileStore holds the client and configuration for MinIO file operations.
 type minioFileStore struct {
-	client         *minio.Client
-	bucketName     string
-	publicEndpoint string
+	client     *minio.Client
+	bucketName string
 }
 
 var fileStore *minioFileStore
@@ -65,15 +64,9 @@ func init() {
 		log.Fatalf("Failed to initialize MinIO client: %v", err)
 	}
 
-	publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	if publicEndpoint == "" {
-		publicEndpoint = endpoint
-	}
-
 	fileStore = &minioFileStore{
-		client:         client,
-		bucketName:     bucketName,
-		publicEndpoint: publicEndpoint,
+		client:     client,
+		bucketName: bucketName,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -112,29 +105,7 @@ func GetPresignedURL(ctx context.Context, objectName string, expires time.Durati
 		return nil, errors.New("MinIO client is not initialized")
 	}
 
-	// Generate presigned URL with custom endpoint
-	reqParams := make(url.Values)
-	presignedURL, err := fileStore.client.PresignedGetObject(ctx, fileStore.bucketName, objectName, expires, reqParams)
-	if err != nil {
-		return nil, err
-	}
-
-	// Replace the host with public endpoint
-	if fileStore.publicEndpoint != "" {
-		publicURL, err := url.Parse(fileStore.publicEndpoint)
-		if err != nil {
-			fwlog.Errorf("Failed to parse MINIO_PUBLIC_ENDPOINT: %v", err)
-			return nil, errors.New("invalid public endpoint configuration")
-		}
-
-		presignedURL.Scheme = publicURL.Scheme
-		presignedURL.Host = publicURL.Host
-		// The path should not be modified here as it's part of the signature.
-		// The ingress controller must be configured to strip any prefix (e.g., /minio)
-		// before forwarding the request to the Minio service.
-	}
-
-	return presignedURL, nil
+	return fileStore.client.PresignedGetObject(ctx, fileStore.bucketName, objectName, expires, nil)
 }
 
 // ListObjects lists all objects in the bucket for debugging purposes.

@@ -40,7 +40,7 @@ spec:
             - name: MINIO_ENDPOINT
               value: "minio.fawa.svc.cluster.local:9000"
             - name: MINIO_PUBLIC_ENDPOINT
-              value: "https://apifawa.marsevilspirit.com/minio"  
+              value: "https://apifawa.marsevilspirit.com/fawa"  
             - name: MINIO_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
